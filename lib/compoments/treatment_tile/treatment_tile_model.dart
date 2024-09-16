@@ -1,8 +1,8 @@
 import '/flutter_flow/flutter_flow_util.dart';
-import 'home_page_widget.dart' show HomePageWidget;
+import 'treatment_tile_widget.dart' show TreatmentTileWidget;
 import 'package:flutter/material.dart';
 
-class HomePageModel extends FlutterFlowModel<HomePageWidget> {
+class TreatmentTileModel extends FlutterFlowModel<TreatmentTileWidget> {
   @override
   void initState(BuildContext context) {}
 

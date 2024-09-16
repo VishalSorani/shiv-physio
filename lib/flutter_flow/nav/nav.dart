@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '/backend/backend.dart';
+import '/backend/schema/structs/index.dart';
 
 import '/auth/base_auth_user_provider.dart';
 
@@ -72,18 +74,13 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       debugLogDiagnostics: true,
       refreshListenable: appStateNotifier,
       errorBuilder: (context, state) =>
-          appStateNotifier.loggedIn ? const HomePageWidget() : const HomePageWidget(),
+          appStateNotifier.loggedIn ? const HomeScreenWidget() : const LoginWidget(),
       routes: [
         FFRoute(
           name: '_initialize',
           path: '/',
           builder: (context, _) =>
-              appStateNotifier.loggedIn ? const HomePageWidget() : const HomePageWidget(),
-        ),
-        FFRoute(
-          name: 'HomePage',
-          path: '/homePage',
-          builder: (context, params) => const HomePageWidget(),
+              appStateNotifier.loggedIn ? const HomeScreenWidget() : const LoginWidget(),
         ),
         FFRoute(
           name: 'Login',
@@ -94,6 +91,41 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: 'Signup',
           path: '/signup',
           builder: (context, params) => const SignupWidget(),
+        ),
+        FFRoute(
+          name: 'HomeScreen',
+          path: '/homeScreen',
+          builder: (context, params) => const HomeScreenWidget(),
+        ),
+        FFRoute(
+          name: 'AppointmentScreen',
+          path: '/appointmentScreen',
+          builder: (context, params) => const AppointmentScreenWidget(),
+        ),
+        FFRoute(
+          name: 'ChatScreen',
+          path: '/chatScreen',
+          builder: (context, params) => const ChatScreenWidget(),
+        ),
+        FFRoute(
+          name: 'ProfileScreen',
+          path: '/profileScreen',
+          builder: (context, params) => const ProfileScreenWidget(),
+        ),
+        FFRoute(
+          name: 'SocialScreen',
+          path: '/socialScreen',
+          builder: (context, params) => const SocialScreenWidget(),
+        ),
+        FFRoute(
+          name: 'dummy',
+          path: '/dummy',
+          builder: (context, params) => const DummyWidget(),
+        ),
+        FFRoute(
+          name: 'profile',
+          path: '/profile',
+          builder: (context, params) => const ProfileWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
@@ -213,6 +245,7 @@ class FFParameters {
     ParamType type, {
     bool isList = false,
     List<String>? collectionNamePath,
+    StructBuilder<T>? structBuilder,
   }) {
     if (futureParamValues.containsKey(paramName)) {
       return futureParamValues[paramName];
@@ -231,6 +264,7 @@ class FFParameters {
       type,
       isList,
       collectionNamePath: collectionNamePath,
+      structBuilder: structBuilder,
     );
   }
 }
@@ -264,7 +298,7 @@ class FFRoute {
 
           if (requireAuth && !appStateNotifier.loggedIn) {
             appStateNotifier.setRedirectLocationIfUnset(state.uri.toString());
-            return '/homePage';
+            return '/login';
           }
           return null;
         },

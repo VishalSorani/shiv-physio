@@ -1,5 +1,4 @@
 import '/auth/firebase_auth/auth_util.dart';
-import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -7,19 +6,19 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'signup_model.dart';
-export 'signup_model.dart';
+import 'login_model.dart';
+export 'login_model.dart';
 
-class SignupWidget extends StatefulWidget {
-  const SignupWidget({super.key});
+class LoginWidget extends StatefulWidget {
+  const LoginWidget({super.key});
 
   @override
-  State<SignupWidget> createState() => _SignupWidgetState();
+  State<LoginWidget> createState() => _LoginWidgetState();
 }
 
-class _SignupWidgetState extends State<SignupWidget>
+class _LoginWidgetState extends State<LoginWidget>
     with TickerProviderStateMixin {
-  late SignupModel _model;
+  late LoginModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -28,16 +27,13 @@ class _SignupWidgetState extends State<SignupWidget>
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => SignupModel());
+    _model = createModel(context, () => LoginModel());
 
     _model.emailAddressTextController ??= TextEditingController();
     _model.emailAddressFocusNode ??= FocusNode();
 
     _model.passwordTextController ??= TextEditingController();
     _model.passwordFocusNode ??= FocusNode();
-
-    _model.confirmPasswordTextController ??= TextEditingController();
-    _model.confirmPasswordFocusNode ??= FocusNode();
 
     animationsMap.addAll({
       'containerOnPageLoadAnimation': AnimationInfo(
@@ -379,127 +375,19 @@ class _SignupWidgetState extends State<SignupWidget>
                                     Padding(
                                       padding: const EdgeInsetsDirectional.fromSTEB(
                                           0.0, 0.0, 0.0, 16.0),
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        child: TextFormField(
-                                          controller: _model
-                                              .confirmPasswordTextController,
-                                          focusNode:
-                                              _model.confirmPasswordFocusNode,
-                                          autofocus: true,
-                                          autofillHints: const [
-                                            AutofillHints.password
-                                          ],
-                                          obscureText:
-                                              !_model.confirmPasswordVisibility,
-                                          decoration: InputDecoration(
-                                            labelText: 'Confirm Password',
-                                            labelStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .labelLarge
-                                                    .override(
-                                                      fontFamily:
-                                                          'Plus Jakarta Sans',
-                                                      color: const Color(0xFF57636C),
-                                                      fontSize: 16.0,
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                color: Color(0xFFF1F4F8),
-                                                width: 2.0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(12.0),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                color: Color(0xFF4B39EF),
-                                                width: 2.0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(12.0),
-                                            ),
-                                            errorBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                color: Color(0xFFFF5963),
-                                                width: 2.0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(12.0),
-                                            ),
-                                            focusedErrorBorder:
-                                                OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                color: Color(0xFFFF5963),
-                                                width: 2.0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(12.0),
-                                            ),
-                                            filled: true,
-                                            fillColor: const Color(0xFFF1F4F8),
-                                            suffixIcon: InkWell(
-                                              onTap: () => safeSetState(
-                                                () => _model
-                                                        .confirmPasswordVisibility =
-                                                    !_model
-                                                        .confirmPasswordVisibility,
-                                              ),
-                                              focusNode: FocusNode(
-                                                  skipTraversal: true),
-                                              child: Icon(
-                                                _model.confirmPasswordVisibility
-                                                    ? Icons.visibility_outlined
-                                                    : Icons
-                                                        .visibility_off_outlined,
-                                                color: const Color(0xFF57636C),
-                                                size: 24.0,
-                                              ),
-                                            ),
-                                          ),
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyLarge
-                                              .override(
-                                                fontFamily: 'Plus Jakarta Sans',
-                                                color: const Color(0xFF101213),
-                                                fontSize: 16.0,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                          validator: _model
-                                              .confirmPasswordTextControllerValidator
-                                              .asValidator(context),
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 0.0, 0.0, 16.0),
                                       child: FFButtonWidget(
                                         onPressed: () async {
-                                          GoRouter.of(context)
-                                              .prepareAuthEvent();
-                                          if (_model.passwordTextController
-                                                  .text !=
-                                              _model
-                                                  .confirmPasswordTextController
-                                                  .text) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Passwords don\'t match!',
-                                                ),
-                                              ),
-                                            );
+                                          if (_model.formKey.currentState ==
+                                                  null ||
+                                              !_model.formKey.currentState!
+                                                  .validate()) {
                                             return;
                                           }
+                                          GoRouter.of(context)
+                                              .prepareAuthEvent();
 
-                                          final user = await authManager
-                                              .createAccountWithEmail(
+                                          final user =
+                                              await authManager.signInWithEmail(
                                             context,
                                             _model.emailAddressTextController
                                                 .text,
@@ -509,15 +397,8 @@ class _SignupWidgetState extends State<SignupWidget>
                                             return;
                                           }
 
-                                          await UserRecord.collection
-                                              .doc(user.uid)
-                                              .update(createUserRecordData(
-                                                createdTime:
-                                                    getCurrentTimestamp,
-                                              ));
-
                                           context.goNamedAuth(
-                                              'HomePage', context.mounted);
+                                              'HomeScreen', context.mounted);
                                         },
                                         text: 'Create Account',
                                         options: FFButtonOptions(
@@ -582,7 +463,7 @@ class _SignupWidgetState extends State<SignupWidget>
                                           }
 
                                           context.goNamedAuth(
-                                              'HomePage', context.mounted);
+                                              'HomeScreen', context.mounted);
                                         },
                                         text: 'Continue with Google',
                                         icon: const FaIcon(
@@ -632,7 +513,7 @@ class _SignupWidgetState extends State<SignupWidget>
                                         hoverColor: Colors.transparent,
                                         highlightColor: Colors.transparent,
                                         onTap: () async {
-                                          context.goNamed('Login');
+                                          context.goNamed('Signup');
                                         },
                                         child: RichText(
                                           textScaler:
@@ -641,11 +522,11 @@ class _SignupWidgetState extends State<SignupWidget>
                                             children: [
                                               const TextSpan(
                                                 text:
-                                                    'Already have an account?  ',
+                                                    'Don\'t have an account?  ',
                                                 style: TextStyle(),
                                               ),
                                               TextSpan(
-                                                text: 'Login here',
+                                                text: 'Sign Up here',
                                                 style:
                                                     FlutterFlowTheme.of(context)
                                                         .bodyMedium
