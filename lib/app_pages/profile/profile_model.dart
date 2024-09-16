@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 class ProfileModel extends FlutterFlowModel<ProfileWidget> {
   ///  State fields for stateful widgets in this page.
 
+  // State field(s) for Switch widget.
+  bool? switchValue;
   // Model for BottomNavigationComponent component.
   late BottomNavigationComponentModel bottomNavigationComponentModel;
 

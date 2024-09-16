@@ -30,6 +30,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
     super.initState();
     _model = createModel(context, () => ProfileModel());
 
+    _model.switchValue = false;
     animationsMap.addAll({
       'buttonOnPageLoadAnimation': AnimationInfo(
         trigger: AnimationTrigger.onPageLoad,
@@ -416,7 +417,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
                           mainAxisSize: MainAxisSize.max,
                           children: [
                             const Icon(
-                              Icons.privacy_tip_rounded,
+                              Icons.light_mode_rounded,
                               color: Color(0xFF57636C),
                               size: 24.0,
                             ),
@@ -424,7 +425,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
                               padding: const EdgeInsetsDirectional.fromSTEB(
                                   12.0, 0.0, 0.0, 0.0),
                               child: Text(
-                                'Terms of Service',
+                                'Dark Mode',
                                 style: FlutterFlowTheme.of(context)
                                     .labelLarge
                                     .override(
@@ -436,13 +437,31 @@ class _ProfileWidgetState extends State<ProfileWidget>
                                     ),
                               ),
                             ),
-                            const Expanded(
+                            Expanded(
                               child: Align(
-                                alignment: AlignmentDirectional(0.9, 0.0),
-                                child: Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Color(0xFF57636C),
-                                  size: 18.0,
+                                alignment: const AlignmentDirectional(1.0, 0.0),
+                                child: Switch.adaptive(
+                                  value: _model.switchValue!,
+                                  onChanged: (newValue) async {
+                                    safeSetState(
+                                        () => _model.switchValue = newValue);
+                                    if (newValue) {
+                                      setDarkModeSetting(
+                                          context, ThemeMode.dark);
+                                    } else {
+                                      setDarkModeSetting(
+                                          context, ThemeMode.light);
+                                    }
+                                  },
+                                  activeColor:
+                                      FlutterFlowTheme.of(context).primary,
+                                  activeTrackColor:
+                                      FlutterFlowTheme.of(context).primary,
+                                  inactiveTrackColor:
+                                      FlutterFlowTheme.of(context).alternate,
+                                  inactiveThumbColor:
+                                      FlutterFlowTheme.of(context)
+                                          .secondaryBackground,
                                 ),
                               ),
                             ),

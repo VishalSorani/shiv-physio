@@ -177,7 +177,7 @@ class _BottomNavigationComponentWidgetState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Opacity(
-                    opacity: widget.selectedPageIndex == 1 ? 1.0 : 0.5,
+                    opacity: widget.selectedPageIndex == 1 ? 1.0 : 0.8,
                     child: FlutterFlowIconButton(
                       borderRadius: 30.0,
                       buttonSize: 50.0,
@@ -217,7 +217,7 @@ class _BottomNavigationComponentWidgetState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Opacity(
-                    opacity: widget.selectedPageIndex == 2 ? 1.0 : 0.5,
+                    opacity: widget.selectedPageIndex == 2 ? 1.0 : 0.8,
                     child: FlutterFlowIconButton(
                       borderColor: Colors.transparent,
                       borderRadius: 30.0,
@@ -258,7 +258,7 @@ class _BottomNavigationComponentWidgetState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Opacity(
-                    opacity: widget.selectedPageIndex == 3 ? 1.0 : 0.5,
+                    opacity: widget.selectedPageIndex == 3 ? 1.0 : 0.8,
                     child: FlutterFlowIconButton(
                       borderColor: Colors.transparent,
                       borderRadius: 30.0,
@@ -299,7 +299,7 @@ class _BottomNavigationComponentWidgetState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Opacity(
-                    opacity: widget.selectedPageIndex == 4 ? 1.0 : 0.5,
+                    opacity: widget.selectedPageIndex == 4 ? 1.0 : 0.8,
                     child: FlutterFlowIconButton(
                       borderColor: Colors.transparent,
                       borderRadius: 30.0,
@@ -340,7 +340,7 @@ class _BottomNavigationComponentWidgetState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Opacity(
-                    opacity: widget.selectedPageIndex == 5 ? 1.0 : 0.5,
+                    opacity: widget.selectedPageIndex == 5 ? 1.0 : 0.8,
                     child: FlutterFlowIconButton(
                       borderColor: Colors.transparent,
                       borderRadius: 30.0,

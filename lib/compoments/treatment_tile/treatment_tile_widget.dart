@@ -93,7 +93,7 @@ class _TreatmentTileWidgetState extends State<TreatmentTileWidget> {
                           ),
                     ),
                     AutoSizeText(
-                      widget.treatmentInfo!.description.toString(),
+                      widget.treatmentInfo!.description,
                       maxLines: 2,
                       minFontSize: 8.0,
                       style: FlutterFlowTheme.of(context).bodySmall.override(

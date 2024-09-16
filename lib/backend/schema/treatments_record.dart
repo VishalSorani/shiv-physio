@@ -20,11 +20,6 @@ class TreatmentsRecord extends FirestoreRecord {
   String get name => _name ?? '';
   bool hasName() => _name != null;
 
-  // "description" field.
-  double? _description;
-  double get description => _description ?? 0.0;
-  bool hasDescription() => _description != null;
-
   // "images" field.
   List<String>? _images;
   List<String> get images => _images ?? const [];
@@ -45,13 +40,18 @@ class TreatmentsRecord extends FirestoreRecord {
   DocumentReference? get createdBy => _createdBy;
   bool hasCreatedBy() => _createdBy != null;
 
+  // "description" field.
+  String? _description;
+  String get description => _description ?? '';
+  bool hasDescription() => _description != null;
+
   void _initializeFields() {
     _name = snapshotData['name'] as String?;
-    _description = castToType<double>(snapshotData['description']);
     _images = getDataList(snapshotData['images']);
     _createdAt = snapshotData['created_at'] as DateTime?;
     _updatedAt = snapshotData['updated_at'] as DateTime?;
     _createdBy = snapshotData['created_by'] as DocumentReference?;
+    _description = snapshotData['description'] as String?;
   }
 
   static CollectionReference get collection =>
@@ -90,18 +90,18 @@ class TreatmentsRecord extends FirestoreRecord {
 
 Map<String, dynamic> createTreatmentsRecordData({
   String? name,
-  double? description,
   DateTime? createdAt,
   DateTime? updatedAt,
   DocumentReference? createdBy,
+  String? description,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
       'name': name,
-      'description': description,
       'created_at': createdAt,
       'updated_at': updatedAt,
       'created_by': createdBy,
+      'description': description,
     }.withoutNulls,
   );
 
@@ -115,21 +115,21 @@ class TreatmentsRecordDocumentEquality implements Equality<TreatmentsRecord> {
   bool equals(TreatmentsRecord? e1, TreatmentsRecord? e2) {
     const listEquality = ListEquality();
     return e1?.name == e2?.name &&
-        e1?.description == e2?.description &&
         listEquality.equals(e1?.images, e2?.images) &&
         e1?.createdAt == e2?.createdAt &&
         e1?.updatedAt == e2?.updatedAt &&
-        e1?.createdBy == e2?.createdBy;
+        e1?.createdBy == e2?.createdBy &&
+        e1?.description == e2?.description;
   }
 
   @override
   int hash(TreatmentsRecord? e) => const ListEquality().hash([
         e?.name,
-        e?.description,
         e?.images,
         e?.createdAt,
         e?.updatedAt,
-        e?.createdBy
+        e?.createdBy,
+        e?.description
       ]);
 
   @override

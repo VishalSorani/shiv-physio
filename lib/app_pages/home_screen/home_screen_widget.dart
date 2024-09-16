@@ -103,11 +103,13 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                               List<TreatmentsRecord>
                                   listViewTreatmentsRecordList = snapshot.data!;
 
-                              return ListView.builder(
+                              return ListView.separated(
                                 padding: EdgeInsets.zero,
                                 shrinkWrap: true,
                                 scrollDirection: Axis.vertical,
                                 itemCount: listViewTreatmentsRecordList.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 12.0),
                                 itemBuilder: (context, listViewIndex) {
                                   final listViewTreatmentsRecord =
                                       listViewTreatmentsRecordList[

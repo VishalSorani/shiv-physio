@@ -190,9 +190,9 @@ class _AppointmentScreenWidgetState extends State<AppointmentScreenWidget> {
                                         padding: EdgeInsets.zero,
                                         gridDelegate:
                                             const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 3,
+                                          crossAxisCount: 5,
                                           crossAxisSpacing: 10.0,
-                                          mainAxisSpacing: 0.0,
+                                          mainAxisSpacing: 10.0,
                                           childAspectRatio: 1.0,
                                         ),
                                         primary: false,
@@ -260,6 +260,8 @@ class _AppointmentScreenWidgetState extends State<AppointmentScreenWidget> {
                                                           16.0, 8.0, 16.0, 8.0),
                                                   child: Text(
                                                     slotsItem,
+                                                    textAlign: TextAlign.center,
+                                                    maxLines: 2,
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMedium
@@ -432,7 +434,7 @@ class _AppointmentScreenWidgetState extends State<AppointmentScreenWidget> {
                                               fontFamily: 'Inter',
                                               letterSpacing: 0.0,
                                             ),
-                                        maxLines: 3,
+                                        maxLines: null,
                                         cursorColor:
                                             FlutterFlowTheme.of(context)
                                                 .primaryText,
@@ -520,7 +522,7 @@ class _AppointmentScreenWidgetState extends State<AppointmentScreenWidget> {
                                               fontFamily: 'Inter',
                                               letterSpacing: 0.0,
                                             ),
-                                        maxLines: 3,
+                                        maxLines: null,
                                         cursorColor:
                                             FlutterFlowTheme.of(context)
                                                 .primaryText,
