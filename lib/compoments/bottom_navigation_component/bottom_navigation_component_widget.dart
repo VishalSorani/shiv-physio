@@ -183,7 +183,7 @@ class _BottomNavigationComponentWidgetState
                       buttonSize: 50.0,
                       icon: Icon(
                         Icons.home_rounded,
-                        color: FlutterFlowTheme.of(context).info,
+                        color: FlutterFlowTheme.of(context).primaryBackground,
                         size: 24.0,
                       ),
                       onPressed: () async {
@@ -224,7 +224,7 @@ class _BottomNavigationComponentWidgetState
                       buttonSize: 50.0,
                       icon: Icon(
                         Icons.edit_calendar,
-                        color: FlutterFlowTheme.of(context).info,
+                        color: FlutterFlowTheme.of(context).primaryBackground,
                         size: 24.0,
                       ),
                       onPressed: () async {
@@ -265,7 +265,7 @@ class _BottomNavigationComponentWidgetState
                       buttonSize: 50.0,
                       icon: Icon(
                         Icons.accessibility_new_outlined,
-                        color: FlutterFlowTheme.of(context).info,
+                        color: FlutterFlowTheme.of(context).primaryBackground,
                         size: 24.0,
                       ),
                       onPressed: () async {
@@ -306,7 +306,7 @@ class _BottomNavigationComponentWidgetState
                       buttonSize: 50.0,
                       icon: Icon(
                         Icons.chat_bubble_rounded,
-                        color: FlutterFlowTheme.of(context).info,
+                        color: FlutterFlowTheme.of(context).primaryBackground,
                         size: 24.0,
                       ),
                       onPressed: () async {
@@ -347,7 +347,7 @@ class _BottomNavigationComponentWidgetState
                       buttonSize: 50.0,
                       icon: Icon(
                         Icons.location_history,
-                        color: FlutterFlowTheme.of(context).info,
+                        color: FlutterFlowTheme.of(context).primaryBackground,
                         size: 24.0,
                       ),
                       onPressed: () async {

@@ -64,7 +64,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                   decoration: const BoxDecoration(),
                   child: SingleChildScrollView(
                     child: Column(
-                      mainAxisSize: MainAxisSize.max,
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
@@ -82,7 +82,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                         ),
                         Padding(
                           padding: const EdgeInsetsDirectional.fromSTEB(
-                              16.0, 12.0, 16.0, 0.0),
+                              16.0, 12.0, 16.0, 100.0),
                           child: StreamBuilder<List<TreatmentsRecord>>(
                             stream: queryTreatmentsRecord(),
                             builder: (context, snapshot) {
@@ -105,6 +105,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
 
                               return ListView.separated(
                                 padding: EdgeInsets.zero,
+                                primary: false,
                                 shrinkWrap: true,
                                 scrollDirection: Axis.vertical,
                                 itemCount: listViewTreatmentsRecordList.length,

@@ -74,7 +74,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: const Color(0xFFF1F4F8),
+        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         body: Stack(
           children: [
             Padding(
@@ -151,14 +151,15 @@ class _ProfileWidgetState extends State<ProfileWidget>
                           currentUserDisplayName,
                           'Unknown',
                         ),
-                        style:
-                            FlutterFlowTheme.of(context).headlineLarge.override(
-                                  fontFamily: 'Urbanist',
-                                  color: const Color(0xFF101213),
-                                  fontSize: 32.0,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                        style: FlutterFlowTheme.of(context)
+                            .headlineLarge
+                            .override(
+                              fontFamily: 'Urbanist',
+                              color: FlutterFlowTheme.of(context).primaryText,
+                              fontSize: 32.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ),
                   ),
@@ -169,7 +170,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
                       currentUserEmail,
                       style: FlutterFlowTheme.of(context).labelMedium.override(
                             fontFamily: 'Plus Jakarta Sans',
-                            color: const Color(0xFF57636C),
+                            color: FlutterFlowTheme.of(context).secondaryText,
                             fontSize: 14.0,
                             letterSpacing: 0.0,
                             fontWeight: FontWeight.w500,
@@ -446,9 +447,13 @@ class _ProfileWidgetState extends State<ProfileWidget>
                                     safeSetState(
                                         () => _model.switchValue = newValue);
                                     if (newValue) {
+                                      FFAppState().isDarkMode = true;
+                                      safeSetState(() {});
                                       setDarkModeSetting(
                                           context, ThemeMode.dark);
                                     } else {
+                                      FFAppState().isDarkMode = false;
+                                      safeSetState(() {});
                                       setDarkModeSetting(
                                           context, ThemeMode.light);
                                     }
