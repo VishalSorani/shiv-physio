@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "59392940131",
+    "project_id": "shiv-physiotherapy-ir2bhp",
+    "storage_bucket": "shiv-physiotherapy-ir2bhp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:59392940131:android:9d286e77bf2d6855714056",
+        "android_client_info": {
+          "package_name": "com.pradipchauhan.shivphysiotherapy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "59392940131-1inra9gt716m61ld14krvjdd5te95cjm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pradipchauhan.shivphysiotherapy",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "59392940131-k6seih13p64iri9v3cgbe0cc9279r8v1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATeaAuScweklCzShFB3Hgmy2Ygmpfk1Is"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "59392940131-k6seih13p64iri9v3cgbe0cc9279r8v1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "59392940131-17v0baa969papeja1l88128garv3c5s7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pradipchauhan.shivphysiotherapy"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
