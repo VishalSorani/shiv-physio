@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../data/base_class/base_controller.dart';
 import '../../../data/modules/availability_repository.dart';

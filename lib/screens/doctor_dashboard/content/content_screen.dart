@@ -562,7 +562,7 @@ class ContentManagementScreen
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        // TODO: View content details
+        controller.onViewContent(item);
       },
       child: Stack(
         children: [

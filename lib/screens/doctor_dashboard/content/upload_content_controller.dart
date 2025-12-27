@@ -12,12 +12,44 @@ class UploadContentController extends BaseController {
 
   final ContentRepository _contentRepository;
   final ImagePicker _imagePicker = ImagePicker();
+  final ContentType? _initialType;
+  final ContentItem? _existingContent;
 
-  UploadContentController(this._contentRepository);
+  UploadContentController(
+    this._contentRepository, {
+    ContentType? initialType,
+    ContentItem? existingContent,
+  })  : _initialType = initialType,
+        _existingContent = existingContent;
 
   // Content type (Image or Video)
   ContentType _selectedType = ContentType.image;
   ContentType get selectedType => _selectedType;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // If editing existing content, populate form
+    final existing = _existingContent;
+    if (existing != null) {
+      _selectedType = existing.type;
+      _title = existing.title;
+      _description = existing.description ?? '';
+      _selectedCategory = existing.category;
+      // Note: We can't set _selectedFile from existing content URL
+      // User would need to re-upload if they want to change the file
+      update([typeSelectorId, formId, contentId]);
+    } else {
+      // Set initial type if provided
+      final initialType = _initialType;
+      if (initialType != null) {
+        _selectedType = initialType;
+        update([typeSelectorId]);
+      }
+    }
+  }
+
+  bool get isEditing => _existingContent != null;
 
   // Selected file
   XFile? _selectedFile;
@@ -48,7 +80,7 @@ class UploadContentController extends BaseController {
     if (_selectedType != type) {
       _selectedType = type;
       _selectedFile = null; // Clear selected file when type changes
-      update([typeSelectorId, filePreviewId]);
+      update([typeSelectorId, filePreviewId, contentId]); // Update button state too
     }
   }
 
@@ -67,7 +99,7 @@ class UploadContentController extends BaseController {
 
       if (file != null) {
         _selectedFile = file;
-        update([filePreviewId]);
+        update([filePreviewId, contentId]); // Update button state too
       }
     } catch (e) {
       AppSnackBar.error(
@@ -80,7 +112,7 @@ class UploadContentController extends BaseController {
   /// Update title
   void onTitleChanged(String value) {
     _title = value;
-    update([formId]);
+    update([formId, contentId]); // Update button state too
   }
 
   /// Update category

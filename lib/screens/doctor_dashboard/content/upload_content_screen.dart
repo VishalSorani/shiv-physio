@@ -10,7 +10,14 @@ import '../../../data/models/content_item.dart';
 import 'upload_content_controller.dart';
 
 class UploadContentScreen extends BaseScreenView<UploadContentController> {
-  const UploadContentScreen({super.key});
+  final ContentType? initialType;
+  final ContentItem? existingContent;
+
+  const UploadContentScreen({
+    super.key,
+    this.initialType,
+    this.existingContent,
+  });
 
   @override
   Widget buildView(BuildContext context) {

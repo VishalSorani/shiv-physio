@@ -3,6 +3,7 @@ import 'appointments/appointments_binding.dart';
 import 'chat/chat_binding.dart';
 import 'home/home_binding.dart';
 import 'profile/profile_binding.dart';
+import 'settings/settings_binding.dart';
 import 'doctor_dashboard_controller.dart';
 
 class DoctorDashboardBinding extends Bindings {
@@ -13,6 +14,7 @@ class DoctorDashboardBinding extends Bindings {
     DoctorAppointmentsBinding().dependencies();
     DoctorChatBinding().dependencies();
     DoctorProfileBinding().dependencies();
+    DoctorSettingsBinding().dependencies();
 
     // Bind the main dashboard controller
     Get.lazyPut<DoctorDashboardController>(() => DoctorDashboardController());

@@ -8,6 +8,7 @@ import 'appointments/appointments_screen.dart';
 import 'chat/chat_screen.dart';
 import 'home/home_screen.dart';
 import 'profile/profile_screen.dart';
+import 'settings/settings_screen.dart';
 import 'doctor_dashboard_controller.dart';
 
 class DoctorDashboardScreen extends BaseScreenView<DoctorDashboardController> {
@@ -37,6 +38,9 @@ class DoctorDashboardScreen extends BaseScreenView<DoctorDashboardController> {
               break;
             case DoctorDashboardController.profileTabIndex:
               currentScreen = const DoctorProfileScreen();
+              break;
+            case DoctorDashboardController.settingsTabIndex:
+              currentScreen = const DoctorSettingsScreen();
               break;
             case DoctorDashboardController.homeTabIndex:
             default:

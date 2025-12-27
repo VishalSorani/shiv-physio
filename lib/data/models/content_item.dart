@@ -165,6 +165,37 @@ class ContentItem {
         return 'grey';
     }
   }
+
+  /// Create a copy with updated fields
+  ContentItem copyWith({
+    String? id,
+    String? title,
+    String? description,
+    ContentType? type,
+    ContentCategory? category,
+    String? fileUrl,
+    String? thumbnailUrl,
+    int? duration,
+    int? fileSize,
+    String? fileFormat,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return ContentItem(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      category: category ?? this.category,
+      fileUrl: fileUrl ?? this.fileUrl,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      duration: duration ?? this.duration,
+      fileSize: fileSize ?? this.fileSize,
+      fileFormat: fileFormat ?? this.fileFormat,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 extension ContentTypeExtension on ContentType {

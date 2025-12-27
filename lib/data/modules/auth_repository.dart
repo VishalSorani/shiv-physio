@@ -194,4 +194,48 @@ class AuthRepository extends BaseRepository {
       );
     }
   }
+
+  /// Sign out from Firebase and clear all stored data
+  Future<void> signOut() async {
+    try {
+      logD('Signing out user');
+
+      // 1. Sign out from Firebase Auth
+      await _firebaseAuth.signOut();
+      logD('Signed out from Firebase Auth');
+
+      // 2. Sign out from Google Sign In
+      try {
+        await _googleSignIn.signOut();
+        logD('Signed out from Google Sign In');
+      } catch (e) {
+        logW('Error signing out from Google: $e');
+        // Continue even if Google sign out fails
+      }
+
+      // 3. Clear all stored user data and tokens
+      await _storageService.clearUserData();
+      logD('Cleared user data from storage');
+
+      // 4. Sign out from Supabase (if needed)
+      try {
+        await _supabase.auth.signOut();
+        logD('Signed out from Supabase');
+      } catch (e) {
+        logW('Error signing out from Supabase: $e');
+        // Continue even if Supabase sign out fails
+      }
+
+      logI('User signed out successfully');
+    } catch (e) {
+      logE('Error during sign out', error: e);
+      // Even if there's an error, try to clear storage
+      try {
+        await _storageService.clearUserData();
+      } catch (clearError) {
+        logE('Error clearing storage during sign out', error: clearError);
+      }
+      rethrow;
+    }
+  }
 }
