@@ -9,12 +9,21 @@ import 'package:shiv_physio_app/data/clients/permission/permission_handler_clien
 import 'package:shiv_physio_app/data/clients/storage/get_storage.dart';
 import 'package:shiv_physio_app/data/clients/storage/storage_provider.dart';
 import 'package:shiv_physio_app/data/service/backend/backend_api_service.dart';
-import 'package:shiv_physio_app/data/service/deep_link_service.dart';
 import 'package:shiv_physio_app/data/service/firebase_service.dart';
 import 'package:shiv_physio_app/data/service/navigation_service/navigation_import.dart';
 import 'package:shiv_physio_app/data/service/network_service.dart';
 import 'package:shiv_physio_app/data/service/storage_service.dart';
 import 'package:shiv_physio_app/data/service/theme_service.dart';
+import 'package:shiv_physio_app/data/modules/auth_repository.dart';
+import 'package:shiv_physio_app/data/modules/availability_repository.dart';
+import 'package:shiv_physio_app/data/modules/profile_repository.dart';
+import 'package:shiv_physio_app/data/modules/doctor_home_repository.dart';
+import 'package:shiv_physio_app/data/modules/appointments_repository.dart';
+import 'package:shiv_physio_app/data/modules/patients_repository.dart';
+import 'package:shiv_physio_app/data/modules/content_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:google_sign_in/google_sign_in.dart';
 
 Future<void> init() async {
   // Register route observer for navigation tracking
@@ -71,6 +80,71 @@ Future<void> init() async {
   // BackendApiCallService
   Get.lazyPut<BackendApiCallService>(
     () => BackendApiCallService(apiService: Get.find<ApiClientBase>()),
+    fenix: true,
+  );
+
+  // ======== Repositories ========
+  Get.lazyPut<SupabaseClient>(() => Supabase.instance.client, fenix: true);
+  Get.lazyPut<fb_auth.FirebaseAuth>(
+    () => fb_auth.FirebaseAuth.instance,
+    fenix: true,
+  );
+  Get.lazyPut<GoogleSignIn>(() => GoogleSignIn.instance, fenix: true);
+  Get.lazyPut<AuthRepository>(
+    () => AuthRepository(
+      supabase: Get.find<SupabaseClient>(),
+      storageService: Get.find<StorageService>(),
+      firebaseAuth: Get.find<fb_auth.FirebaseAuth>(),
+      googleSignIn: Get.find<GoogleSignIn>(),
+    ),
+    fenix: true,
+  );
+
+  Get.lazyPut<AvailabilityRepository>(
+    () => AvailabilityRepository(
+      supabase: Get.find<SupabaseClient>(),
+      storageService: Get.find<StorageService>(),
+    ),
+    fenix: true,
+  );
+
+  Get.lazyPut<ProfileRepository>(
+    () => ProfileRepository(
+      supabase: Get.find<SupabaseClient>(),
+      storageService: Get.find<StorageService>(),
+    ),
+    fenix: true,
+  );
+
+  Get.lazyPut<DoctorHomeRepository>(
+    () => DoctorHomeRepository(
+      supabase: Get.find<SupabaseClient>(),
+      storageService: Get.find<StorageService>(),
+    ),
+    fenix: true,
+  );
+
+  Get.lazyPut<AppointmentsRepository>(
+    () => AppointmentsRepository(
+      supabase: Get.find<SupabaseClient>(),
+      storageService: Get.find<StorageService>(),
+    ),
+    fenix: true,
+  );
+
+  Get.lazyPut<PatientsRepository>(
+    () => PatientsRepository(
+      supabase: Get.find<SupabaseClient>(),
+      storageService: Get.find<StorageService>(),
+    ),
+    fenix: true,
+  );
+
+  Get.lazyPut<ContentRepository>(
+    () => ContentRepository(
+      supabase: Get.find<SupabaseClient>(),
+      storageService: Get.find<StorageService>(),
+    ),
     fenix: true,
   );
 

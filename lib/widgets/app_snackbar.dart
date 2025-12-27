@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shiv_physio_app/core/constants/app_colors.dart';
 
-
 class AppSnackBar {
   AppSnackBar._();
 
@@ -40,19 +39,10 @@ class AppSnackBar {
       forwardAnimationCurve: Curves.easeOut,
       overlayBlur: 0,
       icon: icon != null ? Icon(icon, color: textColor) : null,
-      titleText: Text(
-        title,
-        style: TextStyle(
-          fontSize: 16,
-          color: textColor,
-        ),
-      ),
+      titleText: Text(title, style: TextStyle(fontSize: 16, color: textColor)),
       messageText: Text(
         message,
-        style: TextStyle(
-          fontSize: 14,
-          color: textColor,
-        ),
+        style: TextStyle(fontSize: 14, color: textColor),
       ),
     );
   }
@@ -122,6 +112,47 @@ class AppSnackBar {
       position: position,
       duration: duration,
       icon: icon,
+    );
+  }
+
+  static void comingSoon({
+    String message = 'Coming soon',
+    SnackPosition position = SnackPosition.BOTTOM,
+    Duration duration = const Duration(seconds: 2),
+  }) {
+    if (Get.isSnackbarOpen) {
+      try {
+        Get.closeAllSnackbars();
+      } catch (error) {
+        debugPrint('Failed to close snackbar: $error');
+      }
+    }
+
+    Get.snackbar(
+      '',
+      '',
+      snackPosition: position,
+      backgroundColor: AppColors.info,
+      colorText: AppColors.background,
+      duration: duration,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      snackStyle: SnackStyle.FLOATING,
+      isDismissible: true,
+      forwardAnimationCurve: Curves.easeOut,
+      overlayBlur: 0,
+      titleText: const SizedBox.shrink(),
+      messageText: Center(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.background,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

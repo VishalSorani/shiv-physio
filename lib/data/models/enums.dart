@@ -26,6 +26,12 @@ enum SosSeverity { critical, high, medium, low }
 /// Mirrors Postgres enum: `public.appointment_status`
 enum AppointmentStatus { pending, confirmed, completed, cancelled, noShow }
 
+/// Appointment request status for UI display
+enum RequestStatus {
+  newRequest,
+  urgent,
+}
+
 extension AppointmentStatusMapper on AppointmentStatus {
   /// Converts enum to DB string (snake_case) used by Supabase/Postgres.
   String toDb() {

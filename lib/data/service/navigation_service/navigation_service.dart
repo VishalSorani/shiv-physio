@@ -21,9 +21,15 @@ class NavigationService {
        _networkService = networkService;
 
   /// Private method to navigate to a new screen
-  Future<dynamic> _navigateTo(String route, {dynamic arguments}) async {
+  Future<dynamic> _navigateTo(
+    String route, {
+    dynamic arguments,
+    bool requireNetwork = true,
+  }) async {
     try {
+      if (requireNetwork) {
       await _networkService.checkInternetConnection();
+      }
       _logNavigation('navigate_to', route, arguments);
       return await Get.toNamed(route, arguments: arguments);
     } catch (e) {
@@ -32,13 +38,25 @@ class NavigationService {
     }
   }
 
-  Future<dynamic> navigateToRoute(String route, {dynamic arguments}) {
-    return _navigateTo(route, arguments: arguments);
+  Future<dynamic> navigateToRoute(
+    String route, {
+    dynamic arguments,
+    bool requireNetwork = true,
+  }) {
+    return _navigateTo(route, arguments: arguments, requireNetwork: requireNetwork);
   }
 
   /// Navigate to a route and remove all previous screens from the navigation stack
-  Future<dynamic> offAllToRoute(String route, {dynamic arguments}) {
-    return _navigateToAndRemoveUntil(route, arguments: arguments);
+  Future<dynamic> offAllToRoute(
+    String route, {
+    dynamic arguments,
+    bool requireNetwork = true,
+  }) {
+    return _navigateToAndRemoveUntil(
+      route,
+      arguments: arguments,
+      requireNetwork: requireNetwork,
+    );
   }
 
   /// Private method to navigate to a new screen and remove the previous screen
@@ -62,9 +80,12 @@ class NavigationService {
   Future<dynamic> _navigateToAndRemoveUntil(
     String route, {
     dynamic arguments,
+    bool requireNetwork = true,
   }) async {
     try {
+      if (requireNetwork) {
       await _networkService.checkInternetConnection();
+      }
       _logNavigation('navigate_to_and_remove_until', route, arguments);
       return await Get.offAllNamed(route, arguments: arguments);
     } catch (e) {
