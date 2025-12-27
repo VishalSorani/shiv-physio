@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "977402212154",
+    "project_id": "shiv-physio",
+    "storage_bucket": "shiv-physio.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977402212154:android:3e9e6c5d738bf81a012a03",
+        "android_client_info": {
+          "package_name": "com.shivphysio.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "977402212154-m6lmq6uf786kgl8ucvp2rdorpvpptom5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbv1axhHqot3orYQEaPNxhlTdw-CnhhXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "977402212154-m6lmq6uf786kgl8ucvp2rdorpvpptom5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

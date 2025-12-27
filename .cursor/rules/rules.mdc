@@ -1,0 +1,850 @@
+---
+alwaysApply: true
+---
+
+# GetX Clean Architecture Cursor Rules - Safe Circle
+
+## Core Architecture Principles
+
+### 1. Clean Architecture Layer Separation
+
+- **Presentation Layer**: UI components, controllers, and bindings
+- **Domain Layer**: Business logic, entities, and use cases
+- **Data Layer**: Repositories, data sources, and models
+- **External Layer**: API clients, database, and external services
+
+### 2. SOLID Principles Enforcement
+
+- **Single Responsibility**: Each class has one reason to change
+- **Open/Closed**: Open for extension, closed for modification
+- **Liskov Substitution**: Derived classes must be substitutable for base classes
+- **Interface Segregation**: Many client-specific interfaces over one general-purpose interface
+- **Dependency Inversion**: Depend on abstractions, not concretions
+
+## File Structure Rules
+
+```
+lib/
+├── core/
+│   ├── constants/       # App constants
+│   ├── di/             # Dependency injection
+│   └── errors/         # Custom exceptions
+├── data/
+│   ├── base_class/     # Base classes (BaseController, BaseRepository, etc.)
+│   ├── clients/        # External service clients
+│   ├── models/         # Data models with JSON serialization
+│   ├── modules/        # Repository modules
+│   └── service/        # Data services
+├── model/              # Domain entities
+├── routes/             # App routes
+├── screens/            # UI pages/screens
+├── theme/              # App themes and styling
+├── utils/              # Utility functions
+└── widgets/            # Reusable UI components
+```
+
+## CRITICAL STATE MANAGEMENT RULES
+
+### ❌ NEVER USE:
+- **Rx variables (.obs)** - STRICTLY FORBIDDEN
+- **Obx widgets** - STRICTLY FORBIDDEN
+- **Reactive variables** - STRICTLY FORBIDDEN
+- **update() without IDs** - Only for full page updates when absolutely necessary
+
+### ✅ ALWAYS USE:
+- **GetBuilder with unique IDs** - For targeted component updates
+- **BaseController** - All controllers must extend this
+- **update([uniqueId])** - Update specific components only
+- **GetBuilder<T>(id: 'unique_id')** - Wrap only the widget that needs updating
+
+## GetBuilder with Unique IDs - MANDATORY PATTERN
+
+### Controller Pattern with Unique IDs
+
+```dart
+class ExampleController extends BaseController {
+  // 1. Define unique IDs as constants
+  static const String userListId = 'user_list';
+  static const String userCardId = 'user_card';
+  static const String searchBarId = 'search_bar';
+  static const String filterButtonId = 'filter_button';
+
+  // 2. State variables (private)
+  List<UserEntity> _users = [];
+  String _searchQuery = '';
+  bool _isFilterActive = false;
+
+  // 3. Getters
+  List<UserEntity> get users => _users;
+  String get searchQuery => _searchQuery;
+  bool get isFilterActive => _isFilterActive;
+
+  // 4. Update methods with specific IDs
+  void updateSearchQuery(String query) {
+    _searchQuery = query;
+    update([searchBarId]); // Only update search bar
+  }
+
+  void toggleFilter() {
+    _isFilterActive = !_isFilterActive;
+    update([filterButtonId]); // Only update filter button
+  }
+
+  void updateUserList(List<UserEntity> newUsers) {
+    _users = newUsers;
+    update([userListId]); // Only update user list
+  }
+
+  void updateUserCard(int index) {
+    update(['${userCardId}_$index']); // Update specific card
+  }
+
+  // 5. Business logic calls repository
+  Future<void> loadUsers() async {
+    await handleAsyncOperation(() async {
+      final result = await _userRepository.getUsers();
+      _users = result;
+      update([userListId]); // Update only the list
+    });
+  }
+}
+```
+
+### UI Pattern with GetBuilder IDs
+
+```dart
+class ExampleScreen extends BaseScreenView<ExampleController> {
+  @override
+  Widget buildView(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          // Search bar - updates independently
+          GetBuilder<ExampleController>(
+            id: ExampleController.searchBarId,
+            builder: (controller) => TextField(
+              onChanged: controller.updateSearchQuery,
+              decoration: InputDecoration(
+                hintText: 'Search...',
+              ),
+            ),
+          ),
+          
+          // Filter button - updates independently
+          GetBuilder<ExampleController>(
+            id: ExampleController.filterButtonId,
+            builder: (controller) => IconButton(
+              icon: Icon(
+                controller.isFilterActive 
+                  ? Icons.filter_alt 
+                  : Icons.filter_alt_outlined,
+              ),
+              onPressed: controller.toggleFilter,
+            ),
+          ),
+          
+          // User list - updates independently
+          GetBuilder<ExampleController>(
+            id: ExampleController.userListId,
+            builder: (controller) => Expanded(
+              child: ListView.builder(
+                itemCount: controller.users.length,
+                itemBuilder: (context, index) => GetBuilder<ExampleController>(
+                  id: '${ExampleController.userCardId}_$index',
+                  builder: (controller) => UserCard(
+                    user: controller.users[index],
+                    onTap: () => controller.updateUserCard(index),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+## Component Update Strategy
+
+### ✅ CORRECT: Update Specific Components
+
+```dart
+// Controller
+void updateUserName(String name) {
+  _userName = name;
+  update([userNameId]); // Only updates the name widget
+}
+
+// UI
+GetBuilder<Controller>(
+  id: Controller.userNameId,
+  builder: (controller) => Text(controller.userName),
+)
+```
+
+### ❌ INCORRECT: Update Entire Page
+
+```dart
+// Controller
+void updateUserName(String name) {
+  _userName = name;
+  update(); // Updates entire page - FORBIDDEN
+}
+
+// UI
+GetBuilder<Controller>(
+  builder: (controller) => Text(controller.userName), // No ID - FORBIDDEN
+)
+```
+
+## Reusable Component Rules
+
+### Before Creating Any Widget:
+
+1. **SEARCH FIRST**: Check `lib/widgets/` for existing reusable components
+2. **CHECK UTILS**: Look in `lib/utils/` for utility widgets
+3. **CHECK ANIMATIONS**: Look in `lib/widgets/animations/` for animation widgets
+4. **IF EXISTS**: Use the existing component, don't create a new one
+5. **IF NOT EXISTS**: Create in `lib/widgets/` with proper naming
+
+### Component Creation Checklist:
+
+- [ ] Searched `lib/widgets/` for similar components
+- [ ] Searched `lib/utils/` for utility functions
+- [ ] Component is truly reusable (not screen-specific)
+- [ ] Component has proper documentation
+- [ ] Component follows naming convention: `App[ComponentName]`
+- [ ] Component includes micro animations
+- [ ] Component handles edge cases
+- [ ] Component is placed in correct folder
+
+## Controller Cleanliness Rules
+
+### ✅ CORRECT: Minimal Controller Logic
+
+```dart
+class UserController extends BaseController {
+  final UserRepository _userRepository;
+  
+  UserController(this._userRepository);
+  
+  List<UserEntity> _users = [];
+  List<UserEntity> get users => _users;
+  
+  // Controller only orchestrates, repository does the work
+  Future<void> loadUsers() async {
+    await handleAsyncOperation(() async {
+      _users = await _userRepository.getUsers();
+      update([userListId]);
+    });
+  }
+  
+  Future<void> deleteUser(String id) async {
+    await handleAsyncOperation(() async {
+      await _userRepository.deleteUser(id);
+      _users.removeWhere((u) => u.id == id);
+      update([userListId]);
+    });
+  }
+}
+```
+
+### ❌ INCORRECT: Business Logic in Controller
+
+```dart
+class UserController extends BaseController {
+  // FORBIDDEN: Business logic in controller
+  Future<void> loadUsers() async {
+    setLoading(true);
+    try {
+      final response = await http.get('api/users'); // FORBIDDEN
+      final data = json.decode(response.body); // FORBIDDEN
+      _users = data.map((e) => UserEntity.fromJson(e)).toList(); // FORBIDDEN
+      update();
+    } catch (e) {
+      // Error handling
+    } finally {
+      setLoading(false);
+    }
+  }
+}
+```
+
+## UI and Business Logic Separation
+
+### ✅ CORRECT: Separation of Concerns
+
+```
+lib/
+├── screens/
+│   └── user_screen.dart          # UI only, no business logic
+├── data/
+│   ├── base_class/
+│   │   └── base_controller.dart  # Controller orchestrates
+│   └── modules/
+│       └── user_repo.dart        # Business logic here
+└── widgets/
+    └── user_card.dart            # Pure UI component
+```
+
+### File Responsibilities:
+
+- **Screens**: Only UI structure, calls controller methods
+- **Controllers**: Orchestrate between UI and repository, manage UI state
+- **Repositories**: All business logic, data transformation, API calls
+- **Widgets**: Pure UI components, no business logic
+
+## Base Controller Structure
+
+```dart
+abstract class BaseController extends GetxController {
+  // Unique IDs for component updates
+  static const String baseScreenId = 'base_screen';
+  
+  // State variables (private)
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+  
+  // Update methods with IDs
+  void setLoading(bool value) {
+    if (_isLoading != value) {
+      _isLoading = value;
+      update([baseScreenId]); // Update specific component
+    }
+  }
+  
+  // Helper for async operations
+  Future<T> handleAsyncOperation<T>(
+    Future<T> Function() operation,
+  ) async {
+    try {
+      setLoading(true);
+      return await operation();
+    } catch (e) {
+      // Error handling
+      rethrow;
+    } finally {
+      setLoading(false);
+    }
+  }
+}
+```
+
+## Base Screen View Structure
+
+```dart
+abstract class BaseScreenView<T extends BaseController> extends GetView<T> {
+  const BaseScreenView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: GetBuilder<T>(
+        id: BaseController.baseScreenId,
+        builder: (controller) {
+          if (controller.isLoading) {
+            return buildLoadingWidget();
+          }
+          return BaseScreen(
+            isLoading: controller.isLoading,
+            child: buildView(context),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget buildView(BuildContext context);
+  
+  Widget buildLoadingWidget() {
+    return const Center(child: CircularProgressIndicator());
+  }
+}
+```
+
+## Micro Animations - MANDATORY
+
+### Every Interactive Component Must Have Animations
+
+```dart
+// ✅ CORRECT: Component with animation
+class AppButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: AppConstants.shortAnimation,
+      curve: Curves.easeInOut,
+      child: Material(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: AnimatedScale(
+            scale: isPressed ? 0.95 : 1.0,
+            duration: AppConstants.shortAnimation,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ✅ CORRECT: List item with animation
+class UserCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SlideFadeIn(
+      child: Card(
+        child: ListTile(
+          title: Text(user.name),
+          onTap: () {
+            // Haptic feedback
+            HapticFeedback.lightImpact();
+            onTap();
+          },
+        ),
+      ),
+    );
+  }
+}
+```
+
+### Animation Requirements:
+
+1. **All buttons**: Scale animation on press (0.95 scale)
+2. **All cards**: Slide + fade in animation
+3. **All lists**: Staggered animations for items
+4. **All transitions**: Smooth curves (Curves.easeInOut)
+5. **All interactions**: Haptic feedback where appropriate
+6. **Duration**: Use `AppConstants.shortAnimation` (200ms) or `AppConstants.mediumAnimation` (350ms)
+
+## Edge Case Handling & UX
+
+### Mandatory Edge Cases to Handle:
+
+1. **Empty States**: Always show meaningful empty state UI
+2. **Loading States**: Show appropriate loading indicators
+3. **Error States**: Show user-friendly error messages with retry
+4. **Network Errors**: Handle offline scenarios gracefully
+5. **Null Safety**: All nullable values must be handled
+6. **Validation**: Validate all user inputs
+7. **Boundary Conditions**: Handle min/max values, empty lists, etc.
+8. **Concurrent Actions**: Prevent duplicate submissions
+9. **Memory Management**: Dispose controllers and animations properly
+10. **Accessibility**: Support screen readers and accessibility features
+
+### Example: Comprehensive Edge Case Handling
+
+```dart
+class UserListController extends BaseController {
+  static const String userListId = 'user_list';
+  static const String emptyStateId = 'empty_state';
+  static const String errorStateId = 'error_state';
+  
+  List<UserEntity> _users = [];
+  String? _error;
+  bool _hasError = false;
+  
+  List<UserEntity> get users => _users;
+  bool get isEmpty => _users.isEmpty && !isLoading && !_hasError;
+  bool get hasError => _hasError;
+  String? get error => _error;
+  
+  Future<void> loadUsers() async {
+    try {
+      setLoading(true);
+      _hasError = false;
+      _error = null;
+      update([errorStateId]);
+      
+      final result = await _userRepository.getUsers();
+      
+      // Edge case: Empty result
+      if (result.isEmpty) {
+        _users = [];
+        update([userListId, emptyStateId]);
+        return;
+      }
+      
+      _users = result;
+      _hasError = false;
+      update([userListId, emptyStateId, errorStateId]);
+    } catch (e) {
+      // Edge case: Error handling
+      _hasError = true;
+      _error = _getUserFriendlyError(e);
+      update([errorStateId, userListId]);
+    } finally {
+      setLoading(false);
+    }
+  }
+  
+  String _getUserFriendlyError(dynamic error) {
+    if (error is NetworkException) {
+      return 'Unable to load users. Please check your connection.';
+    }
+    return 'Something went wrong. Please try again.';
+  }
+  
+  void retry() {
+    loadUsers();
+  }
+}
+```
+
+## Code Quality Standards - Senior Developer Level
+
+### Code Review Checklist:
+
+Before submitting any code, review:
+
+1. **Architecture**: Follows clean architecture principles
+2. **State Management**: Uses GetBuilder with unique IDs only
+3. **Component Reusability**: Reused existing components where possible
+4. **Separation of Concerns**: UI, business logic, and data properly separated
+5. **Edge Cases**: All edge cases handled
+6. **Animations**: Micro animations on all interactive components
+7. **Error Handling**: Comprehensive error handling with user-friendly messages
+8. **Performance**: No unnecessary rebuilds, efficient updates
+9. **Accessibility**: Proper semantics and accessibility support
+10. **Documentation**: Public methods documented
+11. **Deprecated Methods**: No deprecated Flutter/GetX methods used
+12. **Null Safety**: All null safety rules followed
+13. **Memory Leaks**: All resources properly disposed
+14. **Code Style**: Follows Dart style guide
+
+### Deprecated Methods - FORBIDDEN
+
+❌ **DO NOT USE:**
+- `RaisedButton` → Use `ElevatedButton`
+- `FlatButton` → Use `TextButton`
+- `OutlineButton` → Use `OutlinedButton`
+- `getxController.update()` without IDs → Use `update([id])`
+- Any deprecated Flutter widgets or methods
+
+✅ **ALWAYS USE:**
+- Latest Flutter widgets
+- `update([uniqueId])` for targeted updates
+- Modern animation APIs
+- Latest GetX patterns
+
+## Naming Conventions
+
+### Controllers
+
+```dart
+// ✅ Correct
+class UserProfileController extends BaseController
+class ProductListController extends BaseController
+
+// ❌ Incorrect
+class UserController extends GetxController
+class Controller extends GetxController
+```
+
+### Widgets
+
+```dart
+// ✅ Correct
+class AppButton extends StatelessWidget
+class UserCard extends StatelessWidget
+class RecipeListItem extends StatelessWidget
+
+// ❌ Incorrect
+class Button extends StatelessWidget
+class Card extends StatelessWidget
+```
+
+### Repositories
+
+```dart
+// ✅ Correct
+abstract class UserRepository
+class UserRepositoryImpl implements UserRepository
+
+// ❌ Incorrect
+class UserRepo
+class UserData
+```
+
+## Repository Structure
+
+```dart
+// All business logic goes here
+class UserRepositoryImpl extends BaseRepository implements UserRepository {
+  final UserRemoteDataSource _remoteDataSource;
+  final UserLocalDataSource _localDataSource;
+
+  UserRepositoryImpl(
+    this._remoteDataSource,
+    this._localDataSource,
+  );
+
+  @override
+  Future<List<UserEntity>> getUsers() async {
+    try {
+      // Try remote first
+      final users = await _remoteDataSource.getUsers();
+      
+      // Cache locally
+      await _localDataSource.saveUsers(users);
+      
+      return users.map((m) => m.toEntity()).toList();
+    } catch (e) {
+      // Fallback to local
+      logW('Remote fetch failed, using local data: $e');
+      final users = await _localDataSource.getUsers();
+      return users.map((m) => m.toEntity()).toList();
+    }
+  }
+}
+```
+
+## Constants and Resources Management
+
+```dart
+// AppConstants - All constants must be defined here
+class AppConstants {
+  AppConstants._();
+
+  // Spacing
+  static const double spacing1 = 4;
+  static const double spacing2 = 8;
+  static const double spacing4 = 16;
+  static const double spacing5 = 20;
+  static const double spacing8 = 32;
+
+  // Animation durations
+  static const Duration shortAnimation = Duration(milliseconds: 200);
+  static const Duration mediumAnimation = Duration(milliseconds: 350);
+  static const Duration longAnimation = Duration(milliseconds: 500);
+}
+
+// AppColors - All colors must be defined here
+class AppColors {
+  // Use existing colors from app_colors.dart
+}
+
+// AppStrings - All strings must be defined here (if not using localization)
+class AppStrings {
+  static const String appName = 'CookSmart';
+  static const String errorGeneral = 'Something went wrong';
+  static const String errorNetwork = 'Network error occurred';
+  static const String buttonRetry = 'Retry';
+}
+```
+
+## FORBIDDEN PRACTICES
+
+❌ **DO NOT USE:**
+
+- Rx variables (.obs) and Obx widgets - **STRICTLY FORBIDDEN**
+- `update()` without IDs - **STRICTLY FORBIDDEN**
+- Direct widget state management without controllers
+- Hardcoded strings and colors
+- Business logic in controllers
+- Business logic in UI widgets
+- Creating duplicate widgets without checking existing ones
+- Deprecated Flutter/GetX methods
+- Full page updates when only a component needs updating
+- Missing edge case handling
+- Components without micro animations
+- Memory leaks (missing dispose methods)
+
+✅ **ALWAYS USE:**
+
+- GetBuilder with unique IDs for all state management
+- BaseController for all controllers
+- BaseScreenView for all screens
+- Proper dependency injection
+- Repository pattern for business logic
+- Reusable components from `lib/widgets/`
+- Micro animations on all interactive components
+- Comprehensive edge case handling
+- User-friendly error messages
+- Latest Flutter widgets and methods
+- Targeted component updates only
+
+## Code Quality Checklist
+
+### Before Creating Any File:
+
+1. Does this file belong to the correct layer?
+2. Does the class follow single responsibility principle?
+3. Are all dependencies injected properly?
+4. Is error handling implemented?
+5. Are edge cases considered?
+6. Are micro animations included?
+7. Have I checked for existing reusable components?
+8. Is business logic in the repository, not controller?
+9. Are unique IDs defined for GetBuilder updates?
+10. Are there appropriate unit tests?
+
+### Before Committing:
+
+1. Run `flutter analyze` - must pass with 0 issues
+2. Run all unit tests - must pass 100%
+3. Check test coverage - minimum 80%
+4. Verify no layer violations
+5. Confirm all async operations are properly handled
+6. Verify no deprecated methods are used
+7. Verify all components have micro animations
+8. Verify all edge cases are handled
+9. Verify GetBuilder uses unique IDs
+10. Verify no Obx or reactive variables are used
+
+## Example: Complete Implementation
+
+### Controller with Unique IDs
+
+```dart
+class RecipeListController extends BaseController {
+  // Unique IDs
+  static const String recipeListId = 'recipe_list';
+  static const String searchBarId = 'search_bar';
+  static const String filterChipId = 'filter_chip';
+  static const String emptyStateId = 'empty_state';
+  
+  final RecipeRepository _recipeRepository;
+  
+  RecipeListController(this._recipeRepository);
+  
+  List<RecipeEntity> _recipes = [];
+  String _searchQuery = '';
+  RecipeFilter _filter = RecipeFilter.all;
+  
+  List<RecipeEntity> get recipes => _filteredRecipes;
+  String get searchQuery => _searchQuery;
+  RecipeFilter get filter => _filter;
+  bool get isEmpty => _recipes.isEmpty;
+  
+  List<RecipeEntity> get _filteredRecipes {
+    var filtered = _recipes;
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((r) => 
+        r.name.toLowerCase().contains(_searchQuery.toLowerCase())
+      ).toList();
+    }
+    if (_filter != RecipeFilter.all) {
+      filtered = filtered.where((r) => r.category == _filter).toList();
+    }
+    return filtered;
+  }
+  
+  Future<void> loadRecipes() async {
+    await handleAsyncOperation(() async {
+      _recipes = await _recipeRepository.getRecipes();
+      update([recipeListId, emptyStateId]);
+    });
+  }
+  
+  void updateSearchQuery(String query) {
+    _searchQuery = query;
+    update([searchBarId, recipeListId, emptyStateId]);
+  }
+  
+  void updateFilter(RecipeFilter filter) {
+    _filter = filter;
+    update([filterChipId, recipeListId, emptyStateId]);
+  }
+  
+  @override
+  void onInit() {
+    super.onInit();
+    loadRecipes();
+  }
+}
+```
+
+### Screen with Targeted Updates
+
+```dart
+class RecipeListScreen extends BaseScreenView<RecipeListController> {
+  @override
+  Widget buildView(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Recipes')),
+      body: Column(
+        children: [
+          // Search bar - updates independently
+          GetBuilder<RecipeListController>(
+            id: RecipeListController.searchBarId,
+            builder: (controller) => Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                onChanged: controller.updateSearchQuery,
+                decoration: const InputDecoration(
+                  hintText: 'Search recipes...',
+                  prefixIcon: Icon(Icons.search),
+                ),
+              ),
+            ),
+          ),
+          
+          // Filter chips - updates independently
+          GetBuilder<RecipeListController>(
+            id: RecipeListController.filterChipId,
+            builder: (controller) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: RecipeFilter.values.map((filter) {
+                  final isSelected = controller.filter == filter;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(filter.label),
+                      selected: isSelected,
+                      onSelected: (_) => controller.updateFilter(filter),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          
+          // Recipe list - updates independently
+          GetBuilder<RecipeListController>(
+            id: RecipeListController.recipeListId,
+            builder: (controller) {
+              if (controller.isEmpty) {
+                return GetBuilder<RecipeListController>(
+                  id: RecipeListController.emptyStateId,
+                  builder: (_) => const EmptyStateWidget(),
+                );
+              }
+              
+              return Expanded(
+                child: ListView.builder(
+                  itemCount: controller.recipes.length,
+                  itemBuilder: (context, index) => SlideFadeIn(
+                    delay: Duration(milliseconds: index * 50),
+                    child: RecipeCard(
+                      recipe: controller.recipes[index],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+## Enforcement Guidelines
+
+1. **Code Reviews**: Every PR must be reviewed for architecture compliance
+2. **Automated Checks**: Use linters and custom rules to enforce patterns
+3. **Documentation**: Every public method must have documentation
+4. **Testing**: Minimum 80% test coverage required
+5. **Training**: Team members must understand clean architecture principles
+
+These rules are **NON-NEGOTIABLE** and must be followed strictly to maintain code quality, testability, maintainability, and optimal performance.
