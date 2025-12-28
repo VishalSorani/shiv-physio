@@ -47,8 +47,8 @@ class UserDashboardController extends BaseController {
   void onBottomNavTap(int index) {
     if (_currentTabIndex == index) return;
 
-    // Allow Home and Appointments tabs; others show "Coming soon"
-    if (index != homeTabIndex && index != appointmentsTabIndex) {
+    // Allow Home, Appointments, and Profile tabs; Gallery shows "Coming soon"
+    if (index == galleryTabIndex) {
       AppSnackBar.comingSoon();
       return;
     }

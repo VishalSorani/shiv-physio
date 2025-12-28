@@ -43,6 +43,10 @@ class ContentItem {
         ? videoUrl!
         : (storagePath?.isNotEmpty == true ? storagePath! : '');
 
+    // Parse content type from database
+    final typeString = json['type']?.toString().toLowerCase();
+    final contentType = _parseContentType(typeString, videoUrl, storagePath);
+
     // Extract file format from URL/path
     String? fileFormat;
     if (fileUrl.isNotEmpty) {
@@ -54,7 +58,7 @@ class ContentItem {
       id: (json['id'] ?? '').toString(),
       title: json['title']?.toString() ?? 'Untitled',
       description: json['description']?.toString(),
-      type: ContentType.video, // Videos table only contains videos
+      type: contentType,
       category: _parseContentCategory(json['category']?.toString()),
       fileUrl: fileUrl,
       thumbnailUrl: json['thumbnail_url']?.toString(),
@@ -64,9 +68,37 @@ class ContentItem {
       fileFormat: fileFormat,
       createdAt: _parseDateTime(json['created_at']) ?? now,
       updatedAt:
+          _parseDateTime(json['updated_at']) ??
           _parseDateTime(json['created_at']) ??
-          now, // Use created_at as updated_at if not present
+          now,
     );
+  }
+
+  static ContentType _parseContentType(
+    String? typeString,
+    String? videoUrl,
+    String? storagePath,
+  ) {
+    // First try to parse from type field
+    if (typeString != null) {
+      switch (typeString.toLowerCase()) {
+        case 'video':
+          return ContentType.video;
+        case 'image':
+          return ContentType.image;
+      }
+    }
+
+    // Fallback: determine from URL fields
+    if (videoUrl != null && videoUrl.isNotEmpty) {
+      return ContentType.video;
+    }
+    if (storagePath != null && storagePath.isNotEmpty) {
+      return ContentType.image;
+    }
+
+    // Default fallback
+    return ContentType.image;
   }
 
   Map<String, dynamic> toJson() {

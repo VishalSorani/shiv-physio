@@ -1,6 +1,7 @@
 import 'package:shiv_physio_app/data/models/enums.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../base_class/base_repository.dart';
+import '../models/appointment.dart';
 import '../models/appointment_request.dart';
 import '../service/storage_service.dart';
 
@@ -137,6 +138,143 @@ class AppointmentsRepository extends BaseRepository {
       logE('Error rejecting appointment', error: e);
       handleRepositoryError(e);
       rethrow;
+    }
+  }
+
+  /// Get patient appointments (for patient users)
+  /// Uses doctor ID from Supabase function
+  Future<List<Appointment>> getPatientAppointments({
+    AppointmentStatus? statusFilter,
+    int? limit,
+  }) async {
+    try {
+      final user = _storageService.getUser();
+      if (user == null) {
+        logW('No user found in storage');
+        return [];
+      }
+
+      final patientId = user.id;
+
+      logD('Fetching appointments for patient: $patientId');
+
+      // Get doctor ID using Supabase function
+      final doctorIdResponse = await _supabase.rpc('get_doctor_id');
+      final doctorId = doctorIdResponse?.toString();
+      
+      if (doctorId == null || doctorId.isEmpty) {
+        logW('No doctor ID found');
+        return [];
+      }
+
+      // Build query
+      dynamic query = _supabase
+          .from('appointments')
+          .select('''
+            *,
+            doctor:doctor_id (
+              id,
+              full_name,
+              avatar_url,
+              email,
+              phone
+            )
+          ''')
+          .eq('patient_id', patientId)
+          .eq('doctor_id', doctorId)
+          .order('start_at', ascending: true);
+
+      // Apply status filter if provided
+      if (statusFilter != null) {
+        query = query.eq('status', statusFilter.toDb());
+      }
+
+      // Apply limit if provided
+      if (limit != null) {
+        query = query.limit(limit);
+      }
+
+      final response = await query;
+
+      if (response.isEmpty) {
+        logD('No appointments found');
+        return [];
+      }
+
+      final appointments = (response as List)
+          .map((json) => Appointment.fromJson(json))
+          .toList();
+
+      logI('Fetched ${appointments.length} appointments for patient');
+      return appointments;
+    } catch (e) {
+      logE('Error fetching patient appointments', error: e);
+      handleRepositoryError(e);
+      rethrow;
+    }
+  }
+
+  /// Get doctor info for patients
+  Future<Map<String, dynamic>?> getDoctorInfo() async {
+    try {
+      logD('Fetching doctor info for patient');
+
+      // Get doctor ID using Supabase function
+      final doctorIdResponse = await _supabase.rpc('get_doctor_id');
+      final doctorId = doctorIdResponse?.toString();
+      
+      if (doctorId == null || doctorId.isEmpty) {
+        logW('No doctor ID found');
+        return null;
+      }
+
+      // Fetch doctor profile
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('id', doctorId)
+          .eq('is_doctor', true)
+          .maybeSingle();
+
+      if (response == null) {
+        logD('No doctor profile found');
+        return null;
+      }
+
+      logI('Doctor info fetched successfully');
+      return Map<String, dynamic>.from(response);
+    } catch (e) {
+      logE('Error fetching doctor info', error: e);
+      handleRepositoryError(e);
+      rethrow;
+    }
+  }
+
+  /// Get next upcoming appointment for patient
+  Future<Appointment?> getNextAppointment() async {
+    try {
+      final appointments = await getPatientAppointments(
+        statusFilter: AppointmentStatus.confirmed,
+        limit: 1,
+      );
+
+      if (appointments.isEmpty) {
+        return null;
+      }
+
+      final now = DateTime.now();
+      final upcoming = appointments.where((apt) => apt.startAt.isAfter(now)).toList();
+      
+      if (upcoming.isEmpty) {
+        return null;
+      }
+
+      // Return the earliest upcoming appointment
+      upcoming.sort((a, b) => a.startAt.compareTo(b.startAt));
+      return upcoming.first;
+    } catch (e) {
+      logE('Error fetching next appointment', error: e);
+      return null;
     }
   }
 }

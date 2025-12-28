@@ -25,5 +25,15 @@ class AppPages {
       page: () => const UserDashboardScreen(),
       binding: UserDashboardBinding(),
     ),
+    GetPage(
+      name: ProfileSetupScreen.profileSetupScreen,
+      page: () => const ProfileSetupScreen(),
+      binding: ProfileSetupBinding(),
+    ),
+    GetPage(
+      name: ContentScreen.contentScreen,
+      page: () => const ContentScreen(),
+      binding: ContentBinding(),
+    ),
   ];
 }

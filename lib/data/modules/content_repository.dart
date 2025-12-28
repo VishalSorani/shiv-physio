@@ -39,6 +39,7 @@ class ContentRepository extends BaseRepository {
           .from('content')
           .select('*')
           .eq('uploaded_by', doctorId)
+          .eq('is_published', true)
           .order('created_at', ascending: false);
 
       // Apply category filter if provided
@@ -61,6 +62,66 @@ class ContentRepository extends BaseRepository {
       return items;
     } catch (e) {
       logE('Error fetching content items', error: e);
+      handleRepositoryError(e);
+      rethrow;
+    }
+  }
+
+  /// Get all content items for patients (uses doctor ID from Supabase function)
+  Future<List<ContentItem>> getContentItemsForPatients({
+    ContentCategory? categoryFilter,
+  }) async {
+    try {
+      logD('Fetching content items for patients');
+
+      // Get doctor ID using Supabase function
+      final doctorIdResponse = await _supabase.rpc('get_doctor_id');
+      String? doctorId;
+      
+      if (doctorIdResponse != null) {
+        if (doctorIdResponse is String) {
+          doctorId = doctorIdResponse;
+        } else if (doctorIdResponse is Map) {
+          doctorId = doctorIdResponse['id']?.toString();
+        } else {
+          doctorId = doctorIdResponse.toString();
+        }
+      }
+      
+      if (doctorId == null || doctorId.isEmpty || doctorId == 'null') {
+        logW('No doctor ID found');
+        return [];
+      }
+
+      logD('Found doctor ID: $doctorId');
+
+      dynamic query = _supabase
+          .from('content')
+          .select('*')
+          .eq('uploaded_by', doctorId)
+          .eq('is_published', true)
+          .order('created_at', ascending: false);
+
+      // Apply category filter if provided
+      if (categoryFilter != null && categoryFilter != ContentCategory.all) {
+        query = query.eq('category', categoryFilter.toDb());
+      }
+
+      final response = await query;
+
+      if (response.isEmpty) {
+        logD('No content items found');
+        return [];
+      }
+
+      final items = (response as List)
+          .map((json) => ContentItem.fromJson(json))
+          .toList();
+
+      logI('Fetched ${items.length} content items for patients');
+      return items;
+    } catch (e) {
+      logE('Error fetching content items for patients', error: e);
       handleRepositoryError(e);
       rethrow;
     }

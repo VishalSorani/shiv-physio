@@ -9,6 +9,8 @@ class User {
   final String? phone;
   final int? age;
   final String? avatarUrl;
+  final String? gender; // male, female, other
+  final String? address;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -20,6 +22,8 @@ class User {
     required this.phone,
     required this.age,
     required this.avatarUrl,
+    this.gender,
+    this.address,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -34,6 +38,8 @@ class User {
       phone: ModelParsers.stringOrNull(json['phone']),
       age: ModelParsers.intOrNull(json['age']),
       avatarUrl: ModelParsers.stringOrNull(json['avatar_url']),
+      gender: ModelParsers.stringOrNull(json['gender']),
+      address: ModelParsers.stringOrNull(json['address']),
       createdAt: ModelParsers.dateTime(json['created_at'], fallback: now),
       updatedAt: ModelParsers.dateTime(json['updated_at'], fallback: now),
     );
@@ -48,6 +54,8 @@ class User {
       'phone': phone,
       'age': age,
       'avatar_url': avatarUrl,
+      'gender': gender,
+      'address': address,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -61,6 +69,8 @@ class User {
     String? phone,
     int? age,
     String? avatarUrl,
+    String? gender,
+    String? address,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -72,6 +82,8 @@ class User {
       phone: phone ?? this.phone,
       age: age ?? this.age,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      gender: gender ?? this.gender,
+      address: address ?? this.address,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

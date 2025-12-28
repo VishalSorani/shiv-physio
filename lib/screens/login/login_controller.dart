@@ -7,6 +7,7 @@ import '../../data/base_class/base_controller.dart';
 import '../../data/modules/auth_repository.dart';
 import '../doctor_dashboard/doctor_dashboard_screen.dart';
 import '../user_dashboard/user_dashboard_screen.dart';
+import '../user_dashboard/profile_setup/profile_setup_screen.dart';
 
 class LoginController extends BaseController with GetTickerProviderStateMixin {
   // GetBuilder IDs
@@ -160,12 +161,28 @@ class LoginController extends BaseController with GetTickerProviderStateMixin {
 
       await _safeHaptic(() => HapticFeedback.lightImpact());
 
-      navigationService.offAllToRoute(
-        isDoctor
-            ? DoctorDashboardScreen.doctorDashboardScreen
-            : UserDashboardScreen.userDashboardScreen,
-        requireNetwork: false,
-      );
+      // Check if user is a doctor or patient
+      if (isDoctor) {
+        navigationService.offAllToRoute(
+          DoctorDashboardScreen.doctorDashboardScreen,
+          requireNetwork: false,
+        );
+      } else {
+        // For patients, check if profile is complete
+        final isProfileComplete = await _authRepository.isUserProfileComplete();
+        if (isProfileComplete) {
+          navigationService.offAllToRoute(
+            UserDashboardScreen.userDashboardScreen,
+            requireNetwork: false,
+          );
+        } else {
+          // Navigate to profile setup if profile is incomplete
+          navigationService.offAllToRoute(
+            ProfileSetupScreen.profileSetupScreen,
+            requireNetwork: false,
+          );
+        }
+      }
     } finally {
       _isSigningIn = false;
       update([buttonId]);

@@ -1,64 +1,174 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/base_class/base_controller.dart';
+import '../../../data/modules/appointments_repository.dart';
+import '../../../data/modules/content_repository.dart';
+import '../../../data/models/appointment.dart';
+import '../../../data/models/content_item.dart';
 import '../../../data/service/storage_service.dart';
+import '../../doctor_dashboard/content/content_viewer_dialogs.dart' as viewer;
+import '../../user_dashboard/content/content_screen.dart';
 
 class HomeController extends BaseController {
   static const String contentId = 'home_content';
+  static const String appointmentId = 'home_appointment';
+  static const String highlightsId = 'home_highlights';
+  static const String recoveryId = 'home_recovery';
 
   final StorageService _storageService;
+  final AppointmentsRepository _appointmentsRepository;
+  final ContentRepository _contentRepository;
 
-  HomeController(this._storageService);
+  HomeController(
+    this._storageService,
+    this._appointmentsRepository,
+    this._contentRepository,
+  );
 
   // User info
   String? get userName => _storageService.getUser()?.fullName;
   String? get avatarUrl => _storageService.getUser()?.avatarUrl;
 
-  // Upcoming appointment data (placeholder - will be fetched from repository)
+  // Upcoming appointment data
+  Appointment? _upcomingAppointment;
+  Appointment? get upcomingAppointment => _upcomingAppointment;
+
+  // Doctor info data
+  Map<String, dynamic>? _doctorInfo;
+  Map<String, dynamic>? get doctorInfo => _doctorInfo;
+
+  bool get hasUpcomingAppointment => _upcomingAppointment != null;
+
   String get upcomingAppointmentTitle => 'Physiotherapy Session';
-  String get upcomingDoctorName => 'Dr. Pradip Chauhan';
-  String get upcomingDoctorSpecialization => 'Senior Physiotherapist';
-  String? get upcomingDoctorAvatarUrl =>
-      null; // TODO: Fetch from appointment data
-  String get upcomingTime => '10:00 AM';
-  String get upcomingDate => 'Today, 24 Oct';
+  String get upcomingDoctorName {
+    if (_upcomingAppointment != null) {
+      // Get from appointment doctor info if available
+      return 'Dr. Pradip Chauhan'; // TODO: Get from appointment
+    }
+    // Get from doctor info
+    return _doctorInfo?['full_name']?.toString() ?? 'Dr. Pradip Chauhan';
+  }
 
-  // Clinic highlights (placeholder - will be fetched from repository)
-  List<Map<String, dynamic>> get clinicHighlights => [
-    {
-      'imageUrl':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuCcWGpQsqJ90H8dqQVjiUSiw5TeGSdxvHpSne1U-pm39eine9V0u2u8OUxl3nHali973FTU_FACeBgvOtxu_lsInm2bpl5iWjJqun5XHTSXQw_IxYSRALgmmAlY7nSbeopTkM2GG1mm3MBdbCwr99GiCTHCByZYbRvO8ci0RPxUiNTD-eOD99OzMgZcCoCFDHmbW9xUn1bPQuTgq7ZOlTBGPc2-XigN96DoPC42j2e4t2fmgK8noySMDcdcrpFvDC4G5lE_qOJ_0Cc',
-      'title': 'Advanced Laser Therapy Now Available',
-      'badge': 'New',
-      'badgeColor': null, // Uses primary color
-    },
-    {
-      'imageUrl':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuAhE_-Mk4HUHU_FlbfjDMbKp5qs70-IGUpzU9aNubr0LZg0j7hY5HhzmjlhrGNWLTo4z2wqr80uvhq38Rv3NaZJ8svMeizaSR5d7xassofh6awkieF4CyKmaw4Lw5zRViCXLWPXgUn0DWee7dy64N4Ew0edwXH0wsPZNHVK-0j_Z7M_20GhfXj2mHcDP9AUV5XpluQY9n1xPm-32jcptVA3p9yjiiF0nqp5YDePrGDxmK8yoVy_Rb3jN1DADBTwHxOXBuxwB6ze0_s',
-      'title': 'Free Workshop: Posture Correction',
-      'badge': 'Event',
-      'badgeColor': AppColors.warning, // Orange
-    },
-  ];
+  String get upcomingDoctorSpecialization {
+    if (_upcomingAppointment != null) {
+      return 'Senior Physiotherapist'; // TODO: Get from appointment
+    }
+    return _doctorInfo?['specializations']?.toString() ?? 
+           _doctorInfo?['title']?.toString() ?? 
+           'Senior Physiotherapist';
+  }
 
-  // Recovery items (placeholder - will be fetched from repository)
-  List<Map<String, dynamic>> get recoveryItems => [
-    {
-      'imageUrl':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuDAxPsY4_WljidglTCfeOMhyYFghHsbWb6llX833QBD9Aco09ZqcUhKs6HRHjsb0zYJhiyelCNzTAZME3Qr_9F0H32F0frGwh2lVbMMUzy5c4rVDU_t-DNPQXCMB0bL9IvR_yv_eIpmnJ1GZR1QfFDAi96Ps7abB-SNDUXAAuB7pvqspjmER-eYsfU6EyUTGZ_VG0ZeiZ1GXq4Ui2ogLhNoLG9opX7g7jI5Op4ajSBeMdaqD8AUGbq-XLLX7yn4w7k82PL7q8c7ar0',
-      'title': 'Lower Back Stretches',
-      'type': 'Video',
-      'duration': '5 min',
-      'hasPlayButton': true,
-    },
-    {
-      'imageUrl':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuAWbx_xFkJgZoPvV3ODXzeUrDsVhYkfLWCjr9nUt1C8pRoQ0s2pnqk6qiXo85lCaOvovQ17X0k2fRGbhfju6f0k2voNLk9pyLoblOEvOvp21DibTkTQH99_r5RtOpAt0PxVmy7A_efX0uH_ZEICpQARqsjqnqAhLmvRZYiOlnLI6dC7CCbY8txNB1kmcsjMTFC7H2TMakvUKpy1mVYZXDsBVOKrIhEVbqfzKwcRUY8LrRcONpzzgq5l5QUud8k39XU6s8J7BLgx_V0',
-      'title': 'Post-Session Ice Pack Guide',
-      'type': 'Article',
-      'duration': '3 min read',
-      'hasPlayButton': false,
-    },
-  ];
+  String? get upcomingDoctorAvatarUrl {
+    if (_upcomingAppointment != null) {
+      return null; // TODO: Get from appointment
+    }
+    return _doctorInfo?['avatar_url']?.toString();
+  }
+
+  String? get doctorTitle => _doctorInfo?['title']?.toString();
+  String? get clinicName => _doctorInfo?['clinic_name']?.toString();
+  String? get clinicAddress => _doctorInfo?['clinic_address']?.toString();
+  
+  String get upcomingTime {
+    if (_upcomingAppointment == null) return 'No upcoming appointment';
+    final time = _upcomingAppointment!.startAt;
+    final hour = time.hour > 12 ? time.hour - 12 : (time.hour == 0 ? 12 : time.hour);
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
+  }
+  
+  String get upcomingDate {
+    if (_upcomingAppointment == null) return '';
+    final now = DateTime.now();
+    final appointmentDate = _upcomingAppointment!.startAt;
+    
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    if (appointmentDate.year == now.year &&
+        appointmentDate.month == now.month &&
+        appointmentDate.day == now.day) {
+      return 'Today, ${appointmentDate.day} ${months[appointmentDate.month - 1]}';
+    } else if (appointmentDate.year == now.year &&
+        appointmentDate.month == now.month &&
+        appointmentDate.day == now.day + 1) {
+      return 'Tomorrow, ${appointmentDate.day} ${months[appointmentDate.month - 1]}';
+    } else {
+      return '${weekdays[appointmentDate.weekday - 1]}, ${appointmentDate.day} ${months[appointmentDate.month - 1]}';
+    }
+  }
+
+  // Content items (replaces clinic highlights)
+  List<ContentItem> _contentItems = [];
+  List<ContentItem> get contentItems => _contentItems;
+
+  // Recovery items (content items for recovery section)
+  List<ContentItem> _recoveryItems = [];
+  List<ContentItem> get recoveryItems => _recoveryItems;
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadData();
+  }
+
+  Future<void> loadData() async {
+    await handleAsyncOperation(() async {
+      await Future.wait([
+        loadAppointment(),
+        loadContent(),
+      ]);
+    });
+  }
+
+  Future<void> loadAppointment() async {
+    try {
+      _upcomingAppointment = await _appointmentsRepository.getNextAppointment();
+      
+      // If no appointment, load doctor info
+      if (_upcomingAppointment == null) {
+        await loadDoctorInfo();
+      }
+      
+      update([appointmentId]);
+    } catch (e) {
+      // Error handled by repository
+      // Still try to load doctor info if appointment failed
+      if (_upcomingAppointment == null) {
+        await loadDoctorInfo();
+        update([appointmentId]);
+      }
+    }
+  }
+
+  Future<void> loadDoctorInfo() async {
+    try {
+      _doctorInfo = await _appointmentsRepository.getDoctorInfo();
+    } catch (e) {
+      // Error handled by repository
+    }
+  }
+
+  Future<void> loadContent() async {
+    try {
+      final allContent = await _contentRepository.getContentItemsForPatients();
+      
+      // Get first 3 items for highlights
+      _contentItems = allContent.take(3).toList();
+      
+      // Get recovery items (exercise category)
+      _recoveryItems = allContent
+          .where((item) => item.category == ContentCategory.exercise)
+          .take(2)
+          .toList();
+      
+      update([highlightsId, recoveryId]);
+    } catch (e) {
+      // Error handled by repository
+    }
+  }
 
   void onNotificationTap() {
     // TODO: Navigate to notifications
@@ -89,26 +199,94 @@ class HomeController extends BaseController {
   }
 
   void onSeeAllHighlightsTap() {
-    // TODO: Navigate to all highlights
+    navigationService.navigateToRoute(ContentScreen.contentScreen);
   }
 
   void onHighlightTap(int index) {
-    // TODO: Navigate to highlight details
+    if (index < 0 || index >= _contentItems.length) return;
+    final content = _contentItems[index];
+    _showContent(content);
   }
 
   void onRecoveryItemTap(int index) {
-    // TODO: Navigate to recovery item details
+    if (index < 0 || index >= _recoveryItems.length) return;
+    final content = _recoveryItems[index];
+    _showContent(content);
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-    // TODO: Load user data and appointments
+  void _showContent(ContentItem content) {
+    if (content.type == ContentType.video) {
+      // Show video player dialog
+      Get.dialog(
+        Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: viewer.VideoPlayerDialog(item: content),
+        ),
+        barrierDismissible: true,
+      );
+    } else {
+      // Show image viewer dialog
+      Get.dialog(
+        Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: viewer.ImageViewerDialog(item: content),
+        ),
+        barrierDismissible: true,
+      );
+    }
+  }
+
+  String? getContentImageUrl(ContentItem content) {
+    if (content.type == ContentType.video) {
+      return content.thumbnailUrl ?? content.fileUrl;
+    }
+    return content.fileUrl;
+  }
+
+  String? getContentBadge(ContentItem content) {
+    switch (content.category) {
+      case ContentCategory.exercise:
+        if (content.description?.toLowerCase().contains('beginner') == true) {
+          return 'Beginner';
+        } else if (content.description?.toLowerCase().contains('advanced') == true) {
+          return 'Advanced';
+        }
+        return null;
+      case ContentCategory.promotional:
+        return 'New';
+      default:
+        return null;
+    }
+  }
+
+  Color? getContentBadgeColor(ContentItem content) {
+    final badge = getContentBadge(content);
+    if (badge == 'Beginner') {
+      return Colors.white;
+    } else if (badge == 'Advanced') {
+      return AppColors.primary;
+    } else if (badge == 'New') {
+      return AppColors.primary;
+    }
+    return null;
+  }
+
+  String? getDuration(ContentItem content) {
+    if (content.duration != null) {
+      final minutes = content.duration! ~/ 60;
+      final seconds = content.duration! % 60;
+      return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+    return null;
   }
 
   @override
   void handleNetworkChange(bool isConnected) {
-    // ignore: discarded_futures
     handleNetworkChangeDefault(isConnected);
+    if (isConnected) {
+      loadData();
+    }
   }
 }

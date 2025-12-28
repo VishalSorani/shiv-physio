@@ -6,10 +6,12 @@ import 'package:get/get.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../data/base_class/base_controller.dart';
+import '../../data/modules/auth_repository.dart';
 import '../../data/service/storage_service.dart';
 import '../doctor_dashboard/doctor_dashboard_screen.dart';
 import '../login/login_screen.dart';
 import '../user_dashboard/user_dashboard_screen.dart';
+import '../user_dashboard/profile_setup/profile_setup_screen.dart';
 
 class SplashController extends BaseController with GetTickerProviderStateMixin {
   // GetBuilder IDs
@@ -128,16 +130,32 @@ class SplashController extends BaseController with GetTickerProviderStateMixin {
 
   void _checkAuthAndNavigate() {
     _navTimer?.cancel();
-    _navTimer = Timer(const Duration(seconds: 3), () {
+    _navTimer = Timer(const Duration(seconds: 3), () async {
       final user = _storageService.getUser();
       if (user != null) {
         // User is logged in, navigate to appropriate dashboard
-        navigationService.offAllToRoute(
-          user.isDoctor
-              ? DoctorDashboardScreen.doctorDashboardScreen
-              : UserDashboardScreen.userDashboardScreen,
-          requireNetwork: false,
-        );
+        if (user.isDoctor) {
+          navigationService.offAllToRoute(
+            DoctorDashboardScreen.doctorDashboardScreen,
+            requireNetwork: false,
+          );
+        } else {
+          // For patients, check if profile is complete
+          final authRepository = Get.find<AuthRepository>();
+          final isProfileComplete = await authRepository.isUserProfileComplete();
+          if (isProfileComplete) {
+            navigationService.offAllToRoute(
+              UserDashboardScreen.userDashboardScreen,
+              requireNetwork: false,
+            );
+          } else {
+            // Navigate to profile setup if profile is incomplete
+            navigationService.offAllToRoute(
+              ProfileSetupScreen.profileSetupScreen,
+              requireNetwork: false,
+            );
+          }
+        }
       } else {
         // No user in storage, go to Login
         navigationService.offAllToRoute(

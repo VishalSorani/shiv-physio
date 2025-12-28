@@ -195,6 +195,24 @@ class AuthRepository extends BaseRepository {
     }
   }
 
+  /// Check if user profile is complete (has phone number)
+  /// Returns true if profile is complete, false otherwise
+  Future<bool> isUserProfileComplete() async {
+    try {
+      final user = _storageService.getUser();
+      if (user == null) {
+        return false;
+      }
+
+      // Check if user has phone number
+      // Profile is considered complete if phone is not null and not empty
+      return user.phone != null && user.phone!.trim().isNotEmpty;
+    } catch (e) {
+      logE('Error checking user profile completeness', error: e);
+      return false;
+    }
+  }
+
   /// Sign out from Firebase and clear all stored data
   Future<void> signOut() async {
     try {

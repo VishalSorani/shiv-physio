@@ -9,6 +9,7 @@ class AppCarouselCard extends StatelessWidget {
   final String title;
   final String? badge;
   final Color? badgeColor;
+  final bool hasPlayButton;
   final VoidCallback? onTap;
   final double width;
 
@@ -18,12 +19,18 @@ class AppCarouselCard extends StatelessWidget {
     required this.title,
     this.badge,
     this.badgeColor,
+    this.hasPlayButton = false,
     this.onTap,
     this.width = 280,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    // Calculate height based on 16:9 aspect ratio
+    final cardHeight = width * 9 / 16;
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -31,40 +38,80 @@ class AppCarouselCard extends StatelessWidget {
       },
       child: Container(
         width: width,
+        height: cardHeight,
         margin: const EdgeInsets.only(right: AppConstants.spacing4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
           child: Stack(
+            fit: StackFit.expand,
             children: [
               // Image with gradient overlay
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage(imageUrl),
-                      fit: BoxFit.cover,
-                      onError: (exception, stackTrace) => Container(
-                        color: Colors.grey.shade300,
-                        child: const Icon(Icons.broken_image),
-                      ),
-                    ),
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.2),
-                          Colors.black.withOpacity(0.8),
-                        ],
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(imageUrl),
+                    fit: BoxFit.cover,
+                    onError: (exception, stackTrace) => Container(
+                      color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+                      child: Icon(
+                        Icons.broken_image,
+                        color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
                       ),
                     ),
                   ),
                 ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.1),
+                        Colors.black.withOpacity(0.7),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              // Content overlay
+              // Play button overlay for videos
+              if (hasPlayButton)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.1),
+                  ),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(AppConstants.spacing3),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.play_arrow,
+                        color: AppColors.primary,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+              // Content overlay with proper padding to prevent cutoff
               Positioned(
                 left: AppConstants.spacing4,
                 right: AppConstants.spacing4,
@@ -81,7 +128,9 @@ class AppCarouselCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: badgeColor ?? AppColors.primary,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusCircular,
+                          ),
                         ),
                         child: Text(
                           badge!,
