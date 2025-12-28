@@ -11,5 +11,9 @@ import 'package:shiv_physio_app/screens/user_dashboard/profile_setup/profile_set
 import 'package:shiv_physio_app/screens/user_dashboard/profile_setup/profile_setup_screen.dart';
 import 'package:shiv_physio_app/screens/user_dashboard/content/content_binding.dart';
 import 'package:shiv_physio_app/screens/user_dashboard/content/content_screen.dart';
+import 'package:shiv_physio_app/screens/user_dashboard/book_appointment/book_appointment_binding.dart';
+import 'package:shiv_physio_app/screens/user_dashboard/book_appointment/book_appointment_screen.dart';
+import 'package:shiv_physio_app/screens/user_dashboard/appointment_confirmation/appointment_confirmation_binding.dart';
+import 'package:shiv_physio_app/screens/user_dashboard/appointment_confirmation/appointment_confirmation_screen.dart';
 
 part '../routes/app_routes.dart';

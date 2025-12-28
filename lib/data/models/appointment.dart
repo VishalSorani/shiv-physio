@@ -13,6 +13,11 @@ class Appointment {
   final String? doctorNote;
   final String? cancelledBy; // uuid
   final String? cancelReason;
+  final String? bookedFor; // 'self' or 'other'
+  final String? otherPersonName;
+  final String? otherPersonPhone;
+  final int? otherPersonAge;
+  final String? reason;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -27,6 +32,11 @@ class Appointment {
     required this.doctorNote,
     required this.cancelledBy,
     required this.cancelReason,
+    this.bookedFor,
+    this.otherPersonName,
+    this.otherPersonPhone,
+    this.otherPersonAge,
+    this.reason,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -44,6 +54,11 @@ class Appointment {
       doctorNote: ModelParsers.stringOrNull(json['doctor_note']),
       cancelledBy: ModelParsers.stringOrNull(json['cancelled_by']),
       cancelReason: ModelParsers.stringOrNull(json['cancel_reason']),
+      bookedFor: ModelParsers.stringOrNull(json['booked_for']),
+      otherPersonName: ModelParsers.stringOrNull(json['other_person_name']),
+      otherPersonPhone: ModelParsers.stringOrNull(json['other_person_phone']),
+      otherPersonAge: ModelParsers.intOrNull(json['other_person_age']),
+      reason: ModelParsers.stringOrNull(json['reason']),
       createdAt: ModelParsers.dateTime(json['created_at'], fallback: now),
       updatedAt: ModelParsers.dateTime(json['updated_at'], fallback: now),
     );
@@ -61,6 +76,11 @@ class Appointment {
       'doctor_note': doctorNote,
       'cancelled_by': cancelledBy,
       'cancel_reason': cancelReason,
+      'booked_for': bookedFor,
+      'other_person_name': otherPersonName,
+      'other_person_phone': otherPersonPhone,
+      'other_person_age': otherPersonAge,
+      'reason': reason,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -77,6 +97,11 @@ class Appointment {
     String? doctorNote,
     String? cancelledBy,
     String? cancelReason,
+    String? bookedFor,
+    String? otherPersonName,
+    String? otherPersonPhone,
+    int? otherPersonAge,
+    String? reason,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -91,6 +116,11 @@ class Appointment {
       doctorNote: doctorNote ?? this.doctorNote,
       cancelledBy: cancelledBy ?? this.cancelledBy,
       cancelReason: cancelReason ?? this.cancelReason,
+      bookedFor: bookedFor ?? this.bookedFor,
+      otherPersonName: otherPersonName ?? this.otherPersonName,
+      otherPersonPhone: otherPersonPhone ?? this.otherPersonPhone,
+      otherPersonAge: otherPersonAge ?? this.otherPersonAge,
+      reason: reason ?? this.reason,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

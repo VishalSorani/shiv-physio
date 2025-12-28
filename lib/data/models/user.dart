@@ -11,6 +11,14 @@ class User {
   final String? avatarUrl;
   final String? gender; // male, female, other
   final String? address;
+  // Doctor-specific fields
+  final String? title;
+  final String? qualifications;
+  final String? specializations;
+  final int? yearsOfExperience;
+  final String? clinicName;
+  final String? clinicAddress;
+  final int? consultationFee;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -24,6 +32,13 @@ class User {
     required this.avatarUrl,
     this.gender,
     this.address,
+    this.title,
+    this.qualifications,
+    this.specializations,
+    this.yearsOfExperience,
+    this.clinicName,
+    this.clinicAddress,
+    this.consultationFee,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -40,6 +55,13 @@ class User {
       avatarUrl: ModelParsers.stringOrNull(json['avatar_url']),
       gender: ModelParsers.stringOrNull(json['gender']),
       address: ModelParsers.stringOrNull(json['address']),
+      title: ModelParsers.stringOrNull(json['title']),
+      qualifications: ModelParsers.stringOrNull(json['qualifications']),
+      specializations: ModelParsers.stringOrNull(json['specializations']),
+      yearsOfExperience: ModelParsers.intOrNull(json['years_of_experience']),
+      clinicName: ModelParsers.stringOrNull(json['clinic_name']),
+      clinicAddress: ModelParsers.stringOrNull(json['clinic_address']),
+      consultationFee: ModelParsers.intOrNull(json['consultation_fee']),
       createdAt: ModelParsers.dateTime(json['created_at'], fallback: now),
       updatedAt: ModelParsers.dateTime(json['updated_at'], fallback: now),
     );
@@ -56,6 +78,13 @@ class User {
       'avatar_url': avatarUrl,
       'gender': gender,
       'address': address,
+      'title': title,
+      'qualifications': qualifications,
+      'specializations': specializations,
+      'years_of_experience': yearsOfExperience,
+      'clinic_name': clinicName,
+      'clinic_address': clinicAddress,
+      'consultation_fee': consultationFee,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -71,6 +100,13 @@ class User {
     String? avatarUrl,
     String? gender,
     String? address,
+    String? title,
+    String? qualifications,
+    String? specializations,
+    int? yearsOfExperience,
+    String? clinicName,
+    String? clinicAddress,
+    int? consultationFee,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -84,6 +120,13 @@ class User {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       gender: gender ?? this.gender,
       address: address ?? this.address,
+      title: title ?? this.title,
+      qualifications: qualifications ?? this.qualifications,
+      specializations: specializations ?? this.specializations,
+      yearsOfExperience: yearsOfExperience ?? this.yearsOfExperience,
+      clinicName: clinicName ?? this.clinicName,
+      clinicAddress: clinicAddress ?? this.clinicAddress,
+      consultationFee: consultationFee ?? this.consultationFee,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

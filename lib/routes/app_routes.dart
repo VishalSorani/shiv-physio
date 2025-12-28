@@ -35,5 +35,15 @@ class AppPages {
       page: () => const ContentScreen(),
       binding: ContentBinding(),
     ),
+    GetPage(
+      name: BookAppointmentScreen.bookAppointmentScreen,
+      page: () => const BookAppointmentScreen(),
+      binding: BookAppointmentBinding(),
+    ),
+    GetPage(
+      name: AppointmentConfirmationScreen.appointmentConfirmationScreen,
+      page: () => const AppointmentConfirmationScreen(),
+      binding: AppointmentConfirmationBinding(),
+    ),
   ];
 }

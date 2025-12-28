@@ -5,7 +5,8 @@ class DoctorAvailabilityWindow {
   final String id; // uuid
   final String doctorId; // uuid
 
-  /// 0 = Sunday ... 6 = Saturday (Postgres `extract(dow ...)` convention)
+  /// Day of week: 0 = Monday, 1 = Tuesday, 2 = Wednesday, 3 = Thursday, 4 = Friday, 5 = Saturday, 6 = Sunday
+  /// Note: This is different from PostgreSQL's extract(dow) which returns 0 = Sunday
   final int dayOfWeek;
 
   /// Postgres `time` is typically returned by Supabase as `HH:MM:SS` string.
@@ -76,5 +77,3 @@ class DoctorAvailabilityWindow {
     );
   }
 }
-
-

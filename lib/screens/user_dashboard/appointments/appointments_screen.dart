@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
+import '../../../data/models/appointment.dart';
 import '../../../widgets/app_appointment_list_card.dart';
 import 'appointments_controller.dart';
 
@@ -75,7 +76,7 @@ class AppointmentsScreen extends BaseScreenView<AppointmentsController> {
               child: InkWell(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  Get.back();
+                  Get.find<AppointmentsController>().onBackTap();
                 },
                 borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
                 child: Container(
@@ -102,7 +103,7 @@ class AppointmentsScreen extends BaseScreenView<AppointmentsController> {
               child: InkWell(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  Get.find<AppointmentsController>().onAddAppointmentTap();
+                  Get.find<AppointmentsController>().onBookAppointmentTap();
                 },
                 borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
                 child: Container(
@@ -224,16 +225,16 @@ class AppointmentsScreen extends BaseScreenView<AppointmentsController> {
         final appointment = appointments[appointmentIndex];
 
         return AppAppointmentListCard(
-          doctorName: appointment.doctorName,
-          specialization: appointment.specialization,
-          month: appointment.month,
-          day: appointment.day,
-          time: appointment.time,
-          status: appointment.status,
-          type: appointment.type,
-          location: appointment.location,
+          doctorName: controller.doctorName,
+          specialization: controller.doctorSpecialization,
+          month: controller.getMonth(appointment),
+          day: controller.getDay(appointment),
+          time: controller.getTime(appointment),
+          status: controller.getCardStatus(appointment),
+          type: controller.getAppointmentType(appointment),
+          location: controller.clinicAddress,
           onReschedule: () => controller.onRescheduleTap(appointment),
-          onCancel: () => controller.onCancelTap(appointment),
+          onCancel: () => _showCancelDialog(context, controller, appointment, isDark),
           onViewPrescription: () =>
               controller.onViewPrescriptionTap(appointment),
           onViewTreatmentPlan: () =>
@@ -242,6 +243,58 @@ class AppointmentsScreen extends BaseScreenView<AppointmentsController> {
         );
       },
     );
+  }
+
+  Future<void> _showCancelDialog(
+    BuildContext context,
+    AppointmentsController controller,
+    Appointment appointment,
+    bool isDark,
+  ) async {
+    final shouldCancel = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+        title: Text(
+          'Cancel Appointment?',
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF111518),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to cancel this appointment? This action cannot be undone.',
+          style: TextStyle(
+            color: isDark ? Colors.grey.shade300 : AppColors.onSurfaceVariant,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'No',
+              style: TextStyle(
+                color: isDark ? Colors.grey.shade400 : AppColors.onSurfaceVariant,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text(
+              'Yes, Cancel',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldCancel == true) {
+      await controller.onCancelTap(appointment);
+    }
   }
 
   Widget _buildSectionDivider(

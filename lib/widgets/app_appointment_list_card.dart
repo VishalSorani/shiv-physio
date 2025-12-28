@@ -117,20 +117,24 @@ class AppAppointmentListCard extends StatelessWidget {
               padding: const EdgeInsets.only(
                 left: 64.0,
               ), // Align with doctor info
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Time slot
                   _buildDetailItem(context, Icons.schedule, time, isDark),
-                  const SizedBox(width: AppConstants.spacing6),
-                  _buildDetailItem(
-                    context,
-                    type == AppointmentType.online
-                        ? Icons.videocam
-                        : Icons.location_on,
-                    type == AppointmentType.online
-                        ? 'Online Call'
-                        : (location ?? 'Clinic'),
-                    isDark,
-                  ),
+                  // Location/Address below time
+                  if (type == AppointmentType.clinic && location != null && location!.isNotEmpty) ...[
+                    const SizedBox(height: AppConstants.spacing2),
+                    _buildAddressItem(context, location!, isDark),
+                  ] else if (type == AppointmentType.online) ...[
+                    const SizedBox(height: AppConstants.spacing2),
+                    _buildDetailItem(
+                      context,
+                      Icons.videocam,
+                      'Online Call',
+                      isDark,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -287,6 +291,35 @@ class AppAppointmentListCard extends StatelessWidget {
           style: TextStyle(
             fontSize: AppConstants.body2Size,
             color: isDark ? Colors.grey.shade300 : AppColors.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddressItem(
+    BuildContext context,
+    String address,
+    bool isDark,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.location_on,
+          size: AppConstants.iconSizeMedium,
+          color: isDark ? Colors.grey.shade400 : AppColors.onSurfaceVariant,
+        ),
+        const SizedBox(width: AppConstants.spacing2),
+        Expanded(
+          child: Text(
+            address,
+            style: TextStyle(
+              fontSize: AppConstants.body2Size,
+              color: isDark ? Colors.grey.shade300 : AppColors.onSurfaceVariant,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

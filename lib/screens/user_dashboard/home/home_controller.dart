@@ -8,6 +8,7 @@ import '../../../data/models/appointment.dart';
 import '../../../data/models/content_item.dart';
 import '../../../data/service/storage_service.dart';
 import '../../doctor_dashboard/content/content_viewer_dialogs.dart' as viewer;
+import '../../user_dashboard/book_appointment/book_appointment_screen.dart';
 import '../../user_dashboard/content/content_screen.dart';
 
 class HomeController extends BaseController {
@@ -187,7 +188,7 @@ class HomeController extends BaseController {
   }
 
   void onBookTap() {
-    // TODO: Navigate to booking
+    navigationService.navigateToRoute(BookAppointmentScreen.bookAppointmentScreen);
   }
 
   void onHistoryTap() {

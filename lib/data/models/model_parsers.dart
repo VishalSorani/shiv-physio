@@ -7,9 +7,24 @@ class ModelParsers {
 
   static DateTime? dateTimeOrNull(dynamic value) {
     if (value == null) return null;
-    if (value is DateTime) return value;
+    if (value is DateTime) {
+      // If it's already a DateTime, ensure it's UTC if it's not already
+      return value.isUtc ? value : value.toUtc();
+    }
     if (value is String && value.isNotEmpty) {
-      return DateTime.tryParse(value);
+      try {
+        // Supabase timestamptz columns return ISO8601 strings
+        // DateTime.parse handles timezone-aware strings correctly
+        final parsed = DateTime.parse(value);
+        // Ensure we always return UTC DateTime
+        return parsed.isUtc ? parsed : parsed.toUtc();
+      } catch (e) {
+        // If parsing fails, try without timezone info and assume UTC
+        final parsed = DateTime.tryParse(value);
+        if (parsed != null) {
+          return parsed.toUtc();
+        }
+      }
     }
     return null;
   }

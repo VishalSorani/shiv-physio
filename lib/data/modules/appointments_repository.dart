@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../base_class/base_repository.dart';
 import '../models/appointment.dart';
 import '../models/appointment_request.dart';
+import '../models/available_slot.dart';
 import '../service/storage_service.dart';
 
 /// Repository for managing doctor appointments
@@ -161,7 +162,7 @@ class AppointmentsRepository extends BaseRepository {
       // Get doctor ID using Supabase function
       final doctorIdResponse = await _supabase.rpc('get_doctor_id');
       final doctorId = doctorIdResponse?.toString();
-      
+
       if (doctorId == null || doctorId.isEmpty) {
         logW('No doctor ID found');
         return [];
@@ -222,7 +223,7 @@ class AppointmentsRepository extends BaseRepository {
       // Get doctor ID using Supabase function
       final doctorIdResponse = await _supabase.rpc('get_doctor_id');
       final doctorId = doctorIdResponse?.toString();
-      
+
       if (doctorId == null || doctorId.isEmpty) {
         logW('No doctor ID found');
         return null;
@@ -250,6 +251,135 @@ class AppointmentsRepository extends BaseRepository {
     }
   }
 
+  /// Get available slots for a specific date
+  ///
+  /// This method uses the Supabase RPC function `get_available_slots` which:
+  /// 1. Checks doctor_availability_windows table for available time windows
+  /// 2. Checks doctor_time_off table to exclude time off periods
+  /// 3. Checks appointments table to exclude already booked slots (pending/confirmed)
+  /// 4. Generates slots based on slot_minutes from clinic_settings (default: 60 minutes / 1 hour)
+  /// 5. Only returns slots that are available and not conflicting
+  Future<List<AvailableSlot>> getAvailableSlotsForDate(DateTime date) async {
+    try {
+      logD('Fetching available slots for date: $date');
+
+      // Get doctor ID using Supabase function
+      final doctorIdResponse = await _supabase.rpc('get_doctor_id');
+      final doctorId = doctorIdResponse?.toString();
+
+      if (doctorId == null || doctorId.isEmpty) {
+        logW('No doctor ID found');
+        return [];
+      }
+
+      // Call the get_available_slots RPC function
+      // This RPC automatically:
+      // - Checks doctor_availability_windows for available time windows
+      //   * Only includes windows where is_active = true
+      //   * Matches day_of_week with the selected date
+      //   * Uses start_time and end_time from the availability windows
+      // - Excludes slots that overlap with doctor_time_off
+      // - Excludes slots that conflict with existing appointments (pending/confirmed)
+      // - Generates slots based on slot_minutes (default: 60 minutes / 1 hour)
+      // - Returns slots in UTC (timestamptz) which need to be converted to local time for display
+      final response = await _supabase.rpc(
+        'get_available_slots',
+        params: {'p_days_ahead': 30, 'p_doctor_id': doctorId},
+      );
+
+      if (response == null) {
+        logD('No available slots found');
+        return [];
+      }
+
+      // Parse slots and filter for the specific date
+      final allSlots = (response as List)
+          .map((json) => AvailableSlot.fromJson(json))
+          .toList();
+
+      // Filter slots for the selected date (convert to local time for comparison)
+      final selectedDate = DateTime(date.year, date.month, date.day);
+      final filteredSlots = allSlots.where((slot) {
+        // Convert UTC slot time to local time for date comparison
+        final slotLocal = slot.slotStartAt.toLocal();
+        final slotDate = DateTime(
+          slotLocal.year,
+          slotLocal.month,
+          slotLocal.day,
+        );
+        return slotDate.year == selectedDate.year &&
+            slotDate.month == selectedDate.month &&
+            slotDate.day == selectedDate.day;
+      }).toList();
+
+      logI('Fetched ${filteredSlots.length} available slots for date');
+      return filteredSlots;
+    } catch (e) {
+      logE('Error fetching available slots', error: e);
+      handleRepositoryError(e);
+      rethrow;
+    }
+  }
+
+  /// Create a new appointment request
+  Future<Appointment> createAppointment({
+    required DateTime startAt,
+    required DateTime endAt,
+    String? patientNote,
+    String? bookedFor,
+    String? otherPersonName,
+    String? otherPersonPhone,
+    int? otherPersonAge,
+    String? reason,
+  }) async {
+    try {
+      final user = _storageService.getUser();
+      if (user == null) {
+        throw Exception('No user found in storage');
+      }
+
+      final patientId = user.id;
+
+      // Get doctor ID using Supabase function
+      final doctorIdResponse = await _supabase.rpc('get_doctor_id');
+      final doctorId = doctorIdResponse?.toString();
+
+      if (doctorId == null || doctorId.isEmpty) {
+        throw Exception('No doctor ID found');
+      }
+
+      logD('Creating appointment for patient: $patientId');
+
+      final appointmentData = {
+        'patient_id': patientId,
+        'doctor_id': doctorId,
+        'start_at': startAt.toIso8601String(),
+        'end_at': endAt.toIso8601String(),
+        'status': 'pending',
+        'patient_note': patientNote,
+        'booked_for': bookedFor ?? 'self',
+        'other_person_name': otherPersonName,
+        'other_person_phone': otherPersonPhone,
+        'other_person_age': otherPersonAge,
+        'reason': reason,
+      };
+
+      final response = await _supabase
+          .from('appointments')
+          .insert(appointmentData)
+          .select()
+          .single();
+
+      final appointment = Appointment.fromJson(response);
+      logI('Appointment created successfully: ${appointment.id}');
+      return appointment;
+    } catch (e) {
+      logE('Error creating appointment', error: e);
+      handleRepositoryError(e);
+      rethrow;
+    }
+  }
+
   /// Get next upcoming appointment for patient
   Future<Appointment?> getNextAppointment() async {
     try {
@@ -263,8 +393,10 @@ class AppointmentsRepository extends BaseRepository {
       }
 
       final now = DateTime.now();
-      final upcoming = appointments.where((apt) => apt.startAt.isAfter(now)).toList();
-      
+      final upcoming = appointments
+          .where((apt) => apt.startAt.isAfter(now))
+          .toList();
+
       if (upcoming.isEmpty) {
         return null;
       }
@@ -275,6 +407,44 @@ class AppointmentsRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching next appointment', error: e);
       return null;
+    }
+  }
+
+  /// Cancel an appointment
+  Future<Appointment> cancelAppointment({
+    required String appointmentId,
+    String? cancelReason,
+  }) async {
+    try {
+      final user = _storageService.getUser();
+      if (user == null) {
+        throw Exception('No user found in storage');
+      }
+
+      final userId = user.id;
+
+      logD('Cancelling appointment: $appointmentId');
+
+      final updateData = {
+        'status': AppointmentStatus.cancelled.toDb(),
+        'cancelled_by': userId,
+        'cancel_reason': cancelReason,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      };
+
+      final response = await _supabase
+          .from('appointments')
+          .update(updateData)
+          .eq('id', appointmentId)
+          .select()
+          .single();
+
+      logI('Appointment cancelled successfully: $appointmentId');
+      return Appointment.fromJson(response);
+    } catch (e) {
+      logE('Error cancelling appointment', error: e);
+      handleRepositoryError(e);
+      rethrow;
     }
   }
 }
