@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
 import '../../../data/models/content_item.dart';
+import '../../../widgets/app_custom_app_bar.dart';
 import 'content_controller.dart';
 import 'upload_content_binding.dart';
 import 'upload_content_screen.dart';
@@ -24,12 +25,84 @@ class ContentManagementScreen
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppCustomAppBar(
+        titleWidget: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Content Management',
+              style: TextStyle(
+                fontSize: AppConstants.h3Size,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF111518),
+              ),
+            ),
+            const SizedBox(width: AppConstants.spacing2),
+            GetBuilder<ContentManagementController>(
+              id: ContentManagementController.countId,
+              builder: (controller) => Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.spacing2,
+                  vertical: AppConstants.spacing1,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade100,
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.radiusSmall,
+                  ),
+                ),
+                child: Text(
+                  '${controller.totalCount} items',
+                  style: TextStyle(
+                    fontSize: AppConstants.captionSize,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        leading: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Get.back();
+            },
+            borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+            child: Container(
+              padding: const EdgeInsets.all(AppConstants.spacing2),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? Colors.white : const Color(0xFF111518),
+              ),
+            ),
+          ),
+        ),
+        action: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              // TODO: Navigate to settings
+            },
+            borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+            child: Container(
+              padding: const EdgeInsets.all(AppConstants.spacing2),
+              child: Icon(
+                Icons.settings,
+                color: isDark ? Colors.white : const Color(0xFF111518),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // Header
-            _buildHeader(context, controller, isDark),
             // Content
             Expanded(
               child: GetBuilder<ContentManagementController>(
@@ -99,125 +172,6 @@ class ContentManagementScreen
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildHeader(
-    BuildContext context,
-    ContentManagementController controller,
-    bool isDark,
-  ) {
-    final headerBgColor = isDark ? AppColors.backgroundDark : Colors.white;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: headerBgColor.withOpacity(0.9),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.spacing4,
-          vertical: AppConstants.spacing2,
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Back button
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      Get.back();
-                    },
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.radiusCircular,
-                    ),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 20,
-                        color: isDark ? Colors.white : const Color(0xFF111518),
-                      ),
-                    ),
-                  ),
-                ),
-                // Settings button
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      // TODO: Navigate to settings
-                    },
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.radiusCircular,
-                    ),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.settings,
-                        size: 20,
-                        color: isDark ? Colors.white : const Color(0xFF111518),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppConstants.spacing2),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Content Management',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF111518),
-                  ),
-                ),
-                GetBuilder<ContentManagementController>(
-                  id: ContentManagementController.countId,
-                  builder: (controller) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppConstants.spacing2,
-                      vertical: AppConstants.spacing1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(
-                        AppConstants.radiusSmall,
-                      ),
-                    ),
-                    child: Text(
-                      '${controller.totalCount} Items',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

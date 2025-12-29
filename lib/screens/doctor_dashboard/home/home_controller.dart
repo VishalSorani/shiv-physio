@@ -10,6 +10,9 @@ import '../patients/patients_screen.dart';
 import '../patients/patients_binding.dart';
 import '../content/content_screen.dart';
 import '../content/content_binding.dart';
+import '../notifications/notifications_screen.dart';
+import '../notifications/notifications_binding.dart';
+import '../doctor_dashboard_controller.dart';
 
 class DoctorHomeController extends BaseController {
   static const String contentId = 'doctor_home_content';
@@ -32,6 +35,19 @@ class DoctorHomeController extends BaseController {
   String? get avatarUrl => _avatarUrl;
   bool _hasNotifications = false;
   bool get hasNotifications => _hasNotifications;
+
+  // Loading states for buttons
+  bool _isApproving = false;
+  bool get isApproving => _isApproving;
+
+  bool _isDeclining = false;
+  bool get isDeclining => _isDeclining;
+
+  // Decline state
+  bool _showDeclineDialog = false;
+  bool get showDeclineDialog => _showDeclineDialog;
+  String _declineReason = '';
+  String get declineReason => _declineReason;
 
   // Pending requests
   List<AppointmentRequest> _pendingRequests = [];
@@ -271,31 +287,86 @@ class DoctorHomeController extends BaseController {
   }
 
   void onViewAllRequestsTap() {
-    // Navigate to appointments screen (pending tab)
-    // TODO: Implement navigation
+    // Navigate to appointments tab in doctor dashboard
+    try {
+      final dashboardController = Get.find<DoctorDashboardController>();
+      dashboardController.onBottomNavTap(DoctorDashboardController.appointmentsTabIndex);
+    } catch (e) {
+      // If DoctorDashboardController is not found, navigate using navigation service
+      // This handles cases where we're not in the dashboard context
+      // TODO: Implement navigation service fallback if needed
+    }
   }
 
   Future<void> onApproveRequest(Map<String, dynamic> request) async {
     final appointmentId = request['id'] as String;
-    await handleAsyncOperation(() async {
-      await _homeRepository.approveAppointment(appointmentId);
-      // Reload data
-      await loadHomeData();
-      AppSnackBar.success(
-        title: 'Success',
-        message: 'Appointment approved successfully',
-      );
-    });
+    _isApproving = true;
+    update([pendingRequestsId]);
+    
+    try {
+      await handleAsyncOperation(() async {
+        await _homeRepository.approveAppointment(appointmentId);
+        // Reload data
+        await loadHomeData();
+        AppSnackBar.success(
+          title: 'Success',
+          message: 'Appointment approved successfully',
+        );
+      });
+    } finally {
+      _isApproving = false;
+      update([pendingRequestsId]);
+    }
   }
 
-  Future<void> onDeclineRequest(Map<String, dynamic> request) async {
+  void onDeclineRequest(Map<String, dynamic> request) {
+    _showDeclineDialog = true;
+    _declineReason = '';
+    update([pendingRequestsId]);
+  }
+
+  void onCancelDecline() {
+    _showDeclineDialog = false;
+    _declineReason = '';
+    update([pendingRequestsId]);
+  }
+
+  void onDeclineReasonChanged(String reason) {
+    _declineReason = reason;
+  }
+
+  Future<void> onConfirmDecline(Map<String, dynamic> request) async {
+    if (_declineReason.isEmpty) {
+      AppSnackBar.error(
+        title: 'Error',
+        message: 'Please provide a reason for declining',
+      );
+      return;
+    }
+
     final appointmentId = request['id'] as String;
-    await handleAsyncOperation(() async {
-      await _homeRepository.declineAppointment(appointmentId);
-      // Reload data
-      await loadHomeData();
-      AppSnackBar.success(title: 'Success', message: 'Appointment declined');
-    });
+    _isDeclining = true;
+    update([pendingRequestsId]);
+    
+    try {
+      await handleAsyncOperation(() async {
+        await _homeRepository.declineAppointment(
+          appointmentId,
+          reason: _declineReason,
+        );
+        // Reload data
+        await loadHomeData();
+        _showDeclineDialog = false;
+        _declineReason = '';
+        AppSnackBar.success(
+          title: 'Success',
+          message: 'Appointment declined',
+        );
+      });
+    } finally {
+      _isDeclining = false;
+      update([pendingRequestsId]);
+    }
   }
 
   void onScheduleItemTap(Map<String, dynamic> item) {
@@ -327,6 +398,13 @@ class DoctorHomeController extends BaseController {
   void onInit() {
     super.onInit();
     loadHomeData();
+  }
+
+  void onNotificationTap() {
+    Get.to(
+      () => const DoctorNotificationsScreen(),
+      binding: DoctorNotificationsBinding(),
+    );
   }
 
   @override

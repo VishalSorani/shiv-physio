@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
+import '../../../data/models/enums.dart';
 import '../../../widgets/app_appointment_request_card.dart';
+import '../../../widgets/app_custom_app_bar.dart';
+import '../notifications/notifications_screen.dart';
+import '../notifications/notifications_binding.dart';
 import 'appointments_controller.dart';
 
 class DoctorAppointmentsScreen
@@ -22,12 +27,34 @@ class DoctorAppointmentsScreen
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppCustomAppBar(
+        title: 'Appointment Requests',
+        centerTitle: true,
+        action: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Get.to(
+                () => const DoctorNotificationsScreen(),
+                binding: DoctorNotificationsBinding(),
+              );
+            },
+            borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+            child: Container(
+              padding: const EdgeInsets.all(AppConstants.spacing2),
+              child: Icon(
+                Icons.notifications_outlined,
+                color: isDark ? Colors.white : const Color(0xFF111518),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // Header
-            _buildHeader(context, isDark),
             // Filter Chips
             GetBuilder<DoctorAppointmentsController>(
               id: DoctorAppointmentsController.filtersId,
@@ -91,102 +118,6 @@ class DoctorAppointmentsScreen
     );
   }
 
-  Widget _buildHeader(BuildContext context, bool isDark) {
-    final headerBgColor = isDark ? const Color(0xFF1A2632) : Colors.white;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: headerBgColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.spacing4,
-          vertical: AppConstants.spacing3,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Appointment Requests',
-                    style: TextStyle(
-                      fontSize: AppConstants.h3Size,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF111518),
-                      letterSpacing: -0.015,
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.spacing1),
-                  Text(
-                    'Welcome back, Dr. Chauhan',
-                    style: TextStyle(
-                      fontSize: AppConstants.captionSize,
-                      fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? Colors.grey.shade400
-                          : const Color(0xFF60778A),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Notification Button
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      // Handle notification tap
-                    },
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.radiusCircular,
-                    ),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.notifications,
-                        color: isDark ? Colors.white : const Color(0xFF111518),
-                      ),
-                    ),
-                  ),
-                ),
-                // Notification Badge
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade500,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: headerBgColor, width: 2),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFilters(
     BuildContext context,
     DoctorAppointmentsController controller,
@@ -194,9 +125,9 @@ class DoctorAppointmentsScreen
   ) {
     final filters = [
       {'label': 'All', 'icon': Icons.filter_list},
-      {'label': 'Urgency', 'icon': Icons.priority_high},
+      {'label': 'Accepted', 'icon': Icons.check_circle_outline},
+      {'label': 'Rejected', 'icon': Icons.cancel_outlined},
       {'label': 'Date', 'icon': Icons.calendar_today},
-      {'label': 'Newest', 'icon': Icons.schedule},
     ];
 
     return Container(
@@ -217,9 +148,47 @@ class DoctorAppointmentsScreen
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () {
+                  onTap: () async {
                     HapticFeedback.selectionClick();
-                    controller.onFilterChanged(index);
+                    if (index == 3) {
+                      // Date filter - show date picker
+                      final selectedDate = await showDatePicker(
+                        context: context,
+                        initialDate: controller.selectedDate ?? DateTime.now(),
+                        firstDate: DateTime.now().subtract(
+                          const Duration(days: 365),
+                        ),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: ColorScheme.light(
+                                primary: AppColors.primary,
+                                onPrimary: Colors.white,
+                                surface: isDark
+                                    ? AppColors.surfaceDark
+                                    : Colors.white,
+                                onSurface: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF111518),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (selectedDate != null) {
+                        controller.onDateSelected(selectedDate);
+                        controller.onFilterChanged(index);
+                      } else if (controller.selectedDate == null) {
+                        // If no date selected and no previous date, don't change filter
+                        return;
+                      } else {
+                        controller.onFilterChanged(index);
+                      }
+                    } else {
+                      controller.onFilterChanged(index);
+                    }
                   },
                   borderRadius: BorderRadius.circular(
                     AppConstants.radiusCircular,
@@ -270,7 +239,11 @@ class DoctorAppointmentsScreen
                         ),
                         const SizedBox(width: AppConstants.spacing2),
                         Text(
-                          filter['label'] as String,
+                          index == 3 && controller.selectedDate != null
+                              ? DateFormat(
+                                  'MMM d',
+                                ).format(controller.selectedDate!)
+                              : filter['label'] as String,
                           style: TextStyle(
                             fontSize: AppConstants.body2Size,
                             fontWeight: isSelected
@@ -283,6 +256,26 @@ class DoctorAppointmentsScreen
                                       : const Color(0xFF111518)),
                           ),
                         ),
+                        if (index == 3 &&
+                            controller.selectedDate != null &&
+                            isSelected)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: AppConstants.spacing2,
+                            ),
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                controller.clearDateFilter();
+                                controller.onFilterChanged(0); // Switch to All
+                              },
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -311,19 +304,29 @@ class DoctorAppointmentsScreen
       itemBuilder: (context, index) {
         final request = controller.appointmentRequests[index];
         final isRejecting = controller.rejectingIndex == index;
+        final isAccepting = controller.acceptingIndex == index;
+        final isConfirmingReject = controller.confirmingRejectIndex == index;
+
+        // Only show actions for pending appointments
+        final isPending =
+            request.appointment.status == AppointmentStatus.pending;
 
         return AppAppointmentRequestCard(
           patientName: request.patient.fullName ?? 'Unknown Patient',
           patientAgeGender: request.patientAgeGender ?? 'Age not specified',
           patientAvatarUrl: request.patient.avatarUrl,
           status: request.requestStatus,
+          appointmentStatus: request.appointment.status,
           date: request.formattedDate,
           time: request.formattedTime,
           reasonForVisit: request.reasonForVisit,
           isRejecting: isRejecting,
           rejectionReason: controller.rejectionReasons(index),
-          onAccept: () => controller.onAcceptRequest(index),
-          onReject: () => controller.onRejectRequest(index),
+          isAccepting: isAccepting,
+          isConfirmingReject: isConfirmingReject,
+          showActions: isPending, // Only show actions for pending appointments
+          onAccept: isPending ? () => controller.onAcceptRequest(index) : null,
+          onReject: isPending ? () => controller.onRejectRequest(index) : null,
           onCancelReject: () => controller.onCancelReject(index),
           onRejectionReasonChanged: (reason) =>
               controller.onRejectionReasonChanged(index, reason),

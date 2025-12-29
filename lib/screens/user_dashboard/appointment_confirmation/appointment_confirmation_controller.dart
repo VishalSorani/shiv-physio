@@ -27,15 +27,13 @@ class AppointmentConfirmationController extends BaseController {
 
   String get doctorName => _doctorInfo?.fullName ?? 'Dr. Pradip Chauhan';
   String get doctorSpecialization =>
-      _doctorInfo?.specializations ??
-      _doctorInfo?.title ??
-      'Physiotherapist';
+      _doctorInfo?.specializations ?? _doctorInfo?.title ?? 'Physiotherapist';
   String? get doctorAvatarUrl => _doctorInfo?.avatarUrl;
 
   String get appointmentDate {
     // Ensure we're working with UTC DateTime, then convert to local
-    final utcStart = appointment.startAt.isUtc 
-        ? appointment.startAt 
+    final utcStart = appointment.startAt.isUtc
+        ? appointment.startAt
         : appointment.startAt.toUtc();
     final localStart = utcStart.toLocal();
     return DateFormat('MMM dd, yyyy').format(localStart);
@@ -43,16 +41,16 @@ class AppointmentConfirmationController extends BaseController {
 
   String get appointmentTime {
     // Ensure we're working with UTC DateTime, then convert to local
-    final utcStart = appointment.startAt.isUtc 
-        ? appointment.startAt 
+    final utcStart = appointment.startAt.isUtc
+        ? appointment.startAt
         : appointment.startAt.toUtc();
-    final utcEnd = appointment.endAt.isUtc 
-        ? appointment.endAt 
+    final utcEnd = appointment.endAt.isUtc
+        ? appointment.endAt
         : appointment.endAt.toUtc();
-    
+
     final localStart = utcStart.toLocal();
     final localEnd = utcEnd.toLocal();
-    
+
     final startTime = DateFormat('hh:mm a').format(localStart);
     final endTime = DateFormat('hh:mm a').format(localEnd);
     return '$startTime - $endTime';
@@ -96,7 +94,7 @@ class AppointmentConfirmationController extends BaseController {
   }
 
   void onBack() {
-    navigationService.goBack();
+    navigationService.offAllToRoute('/user-dashboard');
   }
 
   void onAddToCalendar() {
@@ -115,4 +113,3 @@ class AppointmentConfirmationController extends BaseController {
     handleNetworkChangeDefault(isConnected);
   }
 }
-

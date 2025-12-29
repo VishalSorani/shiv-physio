@@ -97,10 +97,6 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
     DoctorHomeController controller,
     bool isDark,
   ) {
-    final bgColor = isDark
-        ? AppColors.backgroundDark
-        : AppColors.backgroundLight;
-
     return Padding(
       padding: const EdgeInsets.all(AppConstants.spacing5),
       child: Row(
@@ -135,10 +131,65 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
               ],
             ),
           ),
-          // Profile Avatar with Notification Badge
-          Stack(
-            clipBehavior: Clip.none,
+          // Notification Button and Profile Avatar
+          Row(
             children: [
+              // Notification Button
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    controller.onNotificationTap();
+                  },
+                  borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.surfaceDark : Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          color: isDark ? Colors.white : const Color(0xFF111518),
+                          size: AppConstants.iconSizeMedium,
+                        ),
+                      ),
+                      // Notification Badge
+                      if (controller.hasNotifications)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade500,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? AppColors.surfaceDark : Colors.white,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppConstants.spacing3),
+              // Profile Avatar
               Container(
                 width: 48,
                 height: 48,
@@ -169,21 +220,6 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
                       : _buildDefaultAvatar(isDark),
                 ),
               ),
-              // Notification Badge
-              if (controller.hasNotifications)
-                Positioned(
-                  top: -2,
-                  right: -2,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade500,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: bgColor, width: 2),
-                    ),
-                  ),
-                ),
             ],
           ),
         ],
@@ -253,20 +289,29 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
           ),
           const SizedBox(height: AppConstants.spacing3),
           if (controller.hasPendingRequests)
-            AppPendingRequestCard(
-              patientName:
-                  controller.pendingRequests.first['patientName'] as String,
-              treatmentType:
-                  controller.pendingRequests.first['treatmentType'] as String,
-              dateTime: controller.pendingRequests.first['dateTime'] as String,
-              patientAvatarUrl:
-                  controller.pendingRequests.first['avatarUrl'] as String?,
-              isNew:
-                  controller.pendingRequests.first['isNew'] as bool? ?? false,
-              onApprove: () =>
-                  controller.onApproveRequest(controller.pendingRequests.first),
-              onDecline: () =>
-                  controller.onDeclineRequest(controller.pendingRequests.first),
+            GetBuilder<DoctorHomeController>(
+              id: DoctorHomeController.pendingRequestsId,
+              builder: (controller) {
+                final request = controller.pendingRequests.first;
+                return Column(
+                  children: [
+                    AppPendingRequestCard(
+                      patientName: request['patientName'] as String,
+                      treatmentType: request['treatmentType'] as String,
+                      dateTime: request['dateTime'] as String,
+                      patientAvatarUrl: request['avatarUrl'] as String?,
+                      isNew: request['isNew'] as bool? ?? false,
+                      isApproving: controller.isApproving,
+                      isDeclining: controller.isDeclining,
+                      onApprove: () => controller.onApproveRequest(request),
+                      onDecline: () => controller.onDeclineRequest(request),
+                    ),
+                    // Decline Dialog
+                    if (controller.showDeclineDialog)
+                      _buildDeclineDialog(context, controller, request, isDark),
+                  ],
+                );
+              },
             )
           else
             _buildEmptyState(
@@ -276,6 +321,156 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
               title: 'No Pending Requests',
               message: 'All appointment requests have been reviewed',
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeclineDialog(
+    BuildContext context,
+    DoctorHomeController controller,
+    Map<String, dynamic> request,
+    bool isDark,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(top: AppConstants.spacing4),
+      padding: const EdgeInsets.all(AppConstants.spacing4),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.red.shade900.withOpacity(0.1)
+            : Colors.red.shade50,
+        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+        border: Border.all(
+          color: isDark ? Colors.red.shade800 : Colors.red.shade200,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.warning,
+                size: AppConstants.iconSizeMedium,
+                color: isDark ? Colors.red.shade300 : Colors.red.shade800,
+              ),
+              const SizedBox(width: AppConstants.spacing2),
+              Text(
+                'Decline Appointment',
+                style: TextStyle(
+                  fontSize: AppConstants.body2Size,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.red.shade300 : Colors.red.shade800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppConstants.spacing3),
+          Text(
+            'Reason for declining',
+            style: TextStyle(
+              fontSize: AppConstants.captionSize,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.red.shade400 : Colors.red.shade700,
+            ),
+          ),
+          const SizedBox(height: AppConstants.spacing2),
+          TextField(
+            onChanged: controller.onDeclineReasonChanged,
+            maxLines: 2,
+            style: TextStyle(
+              fontSize: AppConstants.body2Size,
+              color: isDark ? Colors.white : const Color(0xFF111518),
+            ),
+            decoration: InputDecoration(
+              hintText: 'E.g., Schedule conflict, out of office...',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade400,
+              ),
+              filled: true,
+              fillColor: isDark ? const Color(0xFF111518) : Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+                borderSide: BorderSide(
+                  color: isDark ? Colors.red.shade800 : Colors.red.shade200,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+                borderSide: BorderSide(
+                  color: isDark ? Colors.red.shade800 : Colors.red.shade200,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+                borderSide: BorderSide(
+                  color: Colors.red.shade500,
+                  width: 2,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppConstants.spacing3),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    controller.onCancelDecline();
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: AppConstants.body2Size,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Material(
+                  color: Colors.red.shade600,
+                  borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                  child: InkWell(
+                    onTap: controller.isDeclining
+                        ? null
+                        : () {
+                            HapticFeedback.mediumImpact();
+                            controller.onConfirmDecline(request);
+                          },
+                    borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConstants.spacing2,
+                      ),
+                      alignment: Alignment.center,
+                      child: controller.isDeclining
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              'Confirm Decline',
+                              style: TextStyle(
+                                fontSize: AppConstants.body2Size,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -319,8 +514,8 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
               context,
               isDark,
               icon: Icons.calendar_today_outlined,
-              title: 'No Appointments Today',
-              message: 'You have no scheduled appointments for today',
+              title: 'No Schedule',
+              message: 'You have no appointments scheduled for today',
             ),
         ],
       ),
@@ -334,23 +529,37 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacing5),
-      child: GridView.count(
-        crossAxisCount: 2,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: AppConstants.spacing4,
-        crossAxisSpacing: AppConstants.spacing4,
-        childAspectRatio: 1.2,
-        children: controller.quickActions.map((action) {
-          return _buildQuickActionCard(
-            context,
-            action['icon'] as IconData,
-            action['label'] as String,
-            action['color'] as Color,
-            isDark,
-            () => controller.onQuickActionTap(action),
-          );
-        }).toList(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Quick Actions',
+            style: TextStyle(
+              fontSize: AppConstants.h4Size,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF111518),
+            ),
+          ),
+          const SizedBox(height: AppConstants.spacing4),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: AppConstants.spacing4,
+            crossAxisSpacing: AppConstants.spacing4,
+            childAspectRatio: 1.2,
+            children: controller.quickActions.map((action) {
+              return _buildQuickActionCard(
+                context,
+                action['icon'] as IconData,
+                action['label'] as String,
+                action['color'] as Color,
+                isDark,
+                () => controller.onQuickActionTap(action),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
@@ -416,7 +625,6 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
                   fontSize: AppConstants.body2Size,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : const Color(0xFF111518),
-                  height: 1.2,
                 ),
               ),
             ],
@@ -437,7 +645,7 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "This Month's Insights",
+            'Analytics',
             style: TextStyle(
               fontSize: AppConstants.h4Size,
               fontWeight: FontWeight.bold,
@@ -445,27 +653,32 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
             ),
           ),
           const SizedBox(height: AppConstants.spacing4),
-          if (controller.hasAnalytics && controller.analytics.isNotEmpty)
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: controller.analytics.map((analytics) {
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                      right: AppConstants.spacing4,
-                    ),
-                    child: AppAnalyticsCard(
-                      label: analytics['label'] as String,
-                      value: analytics['value'] as String,
-                      secondaryValue: analytics['secondaryValue'] as String?,
-                      trend: analytics['trend'] as String?,
-                      isPositiveTrend:
-                          analytics['isPositiveTrend'] as bool? ?? true,
-                      valueColor: analytics['valueColor'] as Color?,
-                    ),
-                  );
-                }).toList(),
-              ),
+          if (controller.hasAnalytics)
+            GetBuilder<DoctorHomeController>(
+              id: DoctorHomeController.analyticsId,
+              builder: (controller) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: controller.analytics.map((analytics) {
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          right: AppConstants.spacing4,
+                        ),
+                        child: AppAnalyticsCard(
+                          label: analytics['label'] as String,
+                          value: analytics['value'] as String,
+                          secondaryValue: analytics['secondaryValue'] as String?,
+                          trend: analytics['trend'] as String?,
+                          isPositiveTrend:
+                              analytics['isPositiveTrend'] as bool? ?? true,
+                          valueColor: analytics['valueColor'] as Color?,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
             )
           else
             _buildEmptyState(
@@ -488,7 +701,7 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
     required String message,
   }) {
     return Container(
-      padding: const EdgeInsets.all(AppConstants.spacing6),
+      padding: const EdgeInsets.all(AppConstants.spacing8),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
@@ -504,13 +717,13 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
             size: 48,
             color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
           ),
-          const SizedBox(height: AppConstants.spacing3),
+          const SizedBox(height: AppConstants.spacing4),
           Text(
             title,
             style: TextStyle(
-              fontSize: AppConstants.body1Size,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.grey.shade300 : Colors.grey.shade600,
+              fontSize: AppConstants.h4Size,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF111518),
             ),
           ),
           const SizedBox(height: AppConstants.spacing2),
@@ -519,7 +732,9 @@ class DoctorHomeScreen extends BaseScreenView<DoctorHomeController> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: AppConstants.body2Size,
-              color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+              color: isDark
+                  ? Colors.grey.shade400
+                  : AppColors.onSurfaceVariant,
             ),
           ),
         ],

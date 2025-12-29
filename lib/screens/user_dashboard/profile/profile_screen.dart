@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
+import '../../../widgets/app_custom_app_bar.dart';
 import 'profile_controller.dart';
 
 class ProfileScreen extends BaseScreenView<ProfileController> {
@@ -24,49 +25,41 @@ class ProfileScreen extends BaseScreenView<ProfileController> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: _buildAppBar(context, isDark, controller, surfaceColor),
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            // App Bar
-            _buildAppBar(context, isDark, controller, surfaceColor),
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppConstants.spacing4),
-                child: Column(
-                  children: [
-                    const SizedBox(height: AppConstants.spacing4),
-                    // Profile Photo
-                    GetBuilder<ProfileController>(
-                      id: ProfileController.photoId,
-                      builder: (controller) => _buildProfilePhoto(
-                        context,
-                        controller,
-                        isDark,
-                        surfaceColor,
-                      ),
-                    ),
-                    const SizedBox(height: AppConstants.spacing6),
-                    // Form Fields
-                    GetBuilder<ProfileController>(
-                      id: ProfileController.formId,
-                      builder: (controller) => _buildFormFields(
-                        controller,
-                        isDark,
-                        surfaceColor,
-                        textColor,
-                        secondaryTextColor,
-                        borderColor,
-                      ),
-                    ),
-                    // Bottom spacing for save button
-                    const SizedBox(height: 100),
-                  ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppConstants.spacing4),
+          child: Column(
+            children: [
+              const SizedBox(height: AppConstants.spacing4),
+              // Profile Photo
+              GetBuilder<ProfileController>(
+                id: ProfileController.photoId,
+                builder: (controller) => _buildProfilePhoto(
+                  context,
+                  controller,
+                  isDark,
+                  surfaceColor,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: AppConstants.spacing6),
+              // Form Fields
+              GetBuilder<ProfileController>(
+                id: ProfileController.formId,
+                builder: (controller) => _buildFormFields(
+                  controller,
+                  isDark,
+                  surfaceColor,
+                  textColor,
+                  secondaryTextColor,
+                  borderColor,
+                ),
+              ),
+              // Bottom spacing for save button
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
       ),
       // Save Button (Fixed at bottom)
@@ -78,75 +71,31 @@ class ProfileScreen extends BaseScreenView<ProfileController> {
     );
   }
 
-  Widget _buildAppBar(
+  PreferredSizeWidget _buildAppBar(
     BuildContext context,
     bool isDark,
     ProfileController controller,
     Color surfaceColor,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spacing4,
-        vertical: AppConstants.spacing3,
-      ),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: controller.onBack,
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.radiusCircular,
-                  ),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.arrow_back,
-                      color: isDark ? Colors.white : const Color(0xFF111518),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppConstants.spacing3),
-              Text(
-                'Basic Info',
-                style: TextStyle(
-                  fontSize: AppConstants.h4Size,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF111518),
-                ),
-              ),
-            ],
-          ),
-          TextButton(
-            onPressed: controller.isSaving ? null : controller.onSave,
-            child: Text(
-              'Save',
-              style: TextStyle(
-                fontSize: AppConstants.body1Size,
-                fontWeight: FontWeight.bold,
-                color: controller.isSaving
-                    ? AppColors.primary.withOpacity(0.5)
-                    : AppColors.primary,
-              ),
+    return AppCustomAppBar(
+      title: 'Basic Info',
+      backgroundColor: surfaceColor,
+      centerTitle: true,
+      action: GetBuilder<ProfileController>(
+        id: ProfileController.saveButtonId,
+        builder: (controller) => TextButton(
+          onPressed: controller.isSaving ? null : controller.onSave,
+          child: Text(
+            'Save',
+            style: TextStyle(
+              fontSize: AppConstants.body1Size,
+              fontWeight: FontWeight.bold,
+              color: controller.isSaving
+                  ? AppColors.primary.withOpacity(0.5)
+                  : AppColors.primary,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -171,7 +120,7 @@ class ProfileScreen extends BaseScreenView<ProfileController> {
                   border: Border.all(color: surfaceColor, width: 4),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -201,7 +150,7 @@ class ProfileScreen extends BaseScreenView<ProfileController> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -275,7 +224,7 @@ class ProfileScreen extends BaseScreenView<ProfileController> {
         borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -520,7 +469,7 @@ class ProfileScreen extends BaseScreenView<ProfileController> {
                     ),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.green.shade900.withOpacity(0.3)
+                          ? Colors.green.shade900.withValues(alpha: 0.3)
                           : Colors.green.shade50,
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -599,10 +548,10 @@ class ProfileScreen extends BaseScreenView<ProfileController> {
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacing4),
       decoration: BoxDecoration(
-        color: surfaceColor.withOpacity(0.9),
+        color: surfaceColor.withValues(alpha: 0.9),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -618,14 +567,14 @@ class ProfileScreen extends BaseScreenView<ProfileController> {
             height: 56,
             decoration: BoxDecoration(
               color: controller.isSaving
-                  ? AppColors.primary.withOpacity(0.6)
+                  ? AppColors.primary.withValues(alpha: 0.6)
                   : AppColors.primary,
               borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
               boxShadow: controller.isSaving
                   ? null
                   : [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
+                        color: AppColors.primary.withValues(alpha: 0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),

@@ -30,15 +30,21 @@ class HomeScreen extends BaseScreenView<HomeController> {
         child: GetBuilder<HomeController>(
           id: HomeController.contentId,
           builder: (controller) {
-            return CustomScrollView(
-              slivers: [
+            return RefreshIndicator(
+              onRefresh: controller.refreshData,
+              child: CustomScrollView(
+                slivers: [
                 // Top App Bar (Sticky)
                 SliverToBoxAdapter(
-                  child: AppUserTopBar(
-                    userName: controller.userName,
-                    avatarUrl: controller.avatarUrl,
-                    onNotificationTap: controller.onNotificationTap,
-                    onProfileTap: controller.onProfileTap,
+                  child: GetBuilder<HomeController>(
+                    id: HomeController.notificationBadgeId,
+                    builder: (controller) => AppUserTopBar(
+                      userName: controller.userName,
+                      avatarUrl: controller.avatarUrl,
+                      onNotificationTap: controller.onNotificationTap,
+                      onProfileTap: controller.onProfileTap,
+                      unreadNotificationCount: controller.unreadNotificationCount,
+                    ),
                   ),
                 ),
                 // Main Content
@@ -278,6 +284,7 @@ class HomeScreen extends BaseScreenView<HomeController> {
                   ),
                 ),
               ],
+              ),
             );
           },
         ),

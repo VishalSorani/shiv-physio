@@ -5,6 +5,7 @@ import '../base_class/base_repository.dart';
 import '../models/token.dart';
 import '../models/user.dart' as model;
 import '../service/storage_service.dart';
+import '../service/onesignal_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -66,6 +67,10 @@ class AuthRepository extends BaseRepository {
           fullName: currentUser.displayName,
           avatarUrl: currentUser.photoURL,
         );
+
+        // Update OneSignal ID if available
+        await _updateOneSignalId(currentUser.uid);
+
         await _storageService.setUser(user);
         return user.isDoctor;
       }
@@ -119,6 +124,10 @@ class AuthRepository extends BaseRepository {
         fullName: firebaseUser.displayName,
         avatarUrl: firebaseUser.photoURL,
       );
+
+      // 6) Update OneSignal ID if available
+      await _updateOneSignalId(firebaseUser.uid);
+
       await _storageService.setUser(user);
       return user.isDoctor;
     } catch (e) {
@@ -210,6 +219,37 @@ class AuthRepository extends BaseRepository {
     } catch (e) {
       logE('Error checking user profile completeness', error: e);
       return false;
+    }
+  }
+
+  /// Update OneSignal ID in database
+  Future<void> _updateOneSignalId(String userId) async {
+    try {
+      // Check if OneSignal is initialized
+      if (!OneSignalService.isInitialized) {
+        logW('OneSignal not initialized, skipping OneSignal ID update');
+        return;
+      }
+
+      // Get OneSignal player ID
+      final oneSignalService = OneSignalService.instance;
+      final playerId = await oneSignalService.getPlayerId();
+
+      if (playerId == null || playerId.isEmpty) {
+        logW('OneSignal player ID not available, skipping update');
+        return;
+      }
+
+      // Update OneSignal ID in Supabase
+      await _supabase
+          .from('users')
+          .update({'onesignal_id': playerId})
+          .eq('id', userId);
+
+      logI('OneSignal ID updated for user: $userId');
+    } catch (e) {
+      logE('Error updating OneSignal ID', error: e);
+      // Don't throw - OneSignal ID update failure shouldn't break login
     }
   }
 

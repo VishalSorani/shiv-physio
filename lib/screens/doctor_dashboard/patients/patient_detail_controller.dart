@@ -1,6 +1,7 @@
 import '../../../data/base_class/base_controller.dart';
 import '../../../data/modules/patients_repository.dart';
 import '../../../data/models/appointment.dart';
+import '../../../data/models/treatment_plan.dart';
 import '../../../data/models/user.dart' as app_models;
 import '../../../data/models/enums.dart';
 
@@ -9,6 +10,7 @@ class PatientDetailController extends BaseController {
   static const String profileId = 'patient_profile';
   static const String tabsId = 'appointment_tabs';
   static const String appointmentsId = 'appointments_list';
+  static const String treatmentPlansId = 'treatment_plans';
 
   final PatientsRepository _patientsRepository;
   final String patientId;
@@ -27,6 +29,33 @@ class PatientDetailController extends BaseController {
   int _selectedTabIndex = 0; // 0: All, 1: Upcoming, 2: Past
   int get selectedTabIndex => _selectedTabIndex;
 
+  // Treatment Plans
+  List<TreatmentPlan> _treatmentPlans = [];
+  List<TreatmentPlan> get treatmentPlans => _treatmentPlans;
+  TreatmentPlan? get activeTreatmentPlan {
+    if (_treatmentPlans.isEmpty) return null;
+    try {
+      return _treatmentPlans.firstWhere((plan) => plan.isActive);
+    } catch (e) {
+      // No active plan found, return the most recent one
+      return _treatmentPlans.first;
+    }
+  }
+
+  // Expanded plans state - only one plan can be expanded at a time
+  String? _expandedPlanId;
+  bool isPlanExpanded(String planId) => _expandedPlanId == planId;
+  void togglePlanExpansion(String planId) {
+    if (_expandedPlanId == planId) {
+      // If clicking the same plan, collapse it
+      _expandedPlanId = null;
+    } else {
+      // Expand the clicked plan (this automatically closes any previously expanded plan)
+      _expandedPlanId = planId;
+    }
+    update([treatmentPlansId]);
+  }
+
   // Appointments
   List<Appointment> _allAppointments = [];
   List<Appointment> get appointments {
@@ -34,17 +63,21 @@ class PatientDetailController extends BaseController {
     switch (_selectedTabIndex) {
       case 1: // Upcoming
         return _allAppointments
-            .where((apt) =>
-                apt.startAt.isAfter(now) &&
-                (apt.status == AppointmentStatus.pending ||
-                    apt.status == AppointmentStatus.confirmed))
+            .where(
+              (apt) =>
+                  apt.startAt.isAfter(now) &&
+                  (apt.status == AppointmentStatus.pending ||
+                      apt.status == AppointmentStatus.confirmed),
+            )
             .toList();
       case 2: // Past
         return _allAppointments
-            .where((apt) =>
-                apt.startAt.isBefore(now) ||
-                apt.status == AppointmentStatus.completed ||
-                apt.status == AppointmentStatus.cancelled)
+            .where(
+              (apt) =>
+                  apt.startAt.isBefore(now) ||
+                  apt.status == AppointmentStatus.completed ||
+                  apt.status == AppointmentStatus.cancelled,
+            )
             .toList();
       case 0: // All
       default:
@@ -65,17 +98,23 @@ class PatientDetailController extends BaseController {
         _patient = await _patientsRepository.getPatientById(patientId);
 
         // Load appointments
-        _allAppointments =
-            await _patientsRepository.getPatientAppointments(patientId);
+        _allAppointments = await _patientsRepository.getPatientAppointments(
+          patientId,
+        );
 
-        update([profileId, appointmentsId]);
+        // Load treatment plans
+        _treatmentPlans = await _patientsRepository.getPatientTreatmentPlans(
+          patientId,
+        );
+
+        update([profileId, appointmentsId, treatmentPlansId]);
       } finally {
         if (showLoading) {
           _isLoading = false;
           update([contentId]);
         }
       }
-    });
+    }, showLoadingIndicator: false);
   }
 
   /// Refresh patient data (for pull-to-refresh)
@@ -106,6 +145,75 @@ class PatientDetailController extends BaseController {
     return parts.join(' • ');
   }
 
+  /// Create a new treatment plan
+  Future<void> createTreatmentPlan({
+    String? diagnosis,
+    List<String>? medicalConditions,
+    String? treatmentGoals,
+    required String treatmentPlan,
+    int? durationWeeks,
+    int? frequencyPerWeek,
+    String? notes,
+  }) async {
+    await handleAsyncOperation(() async {
+      final createdPlan = await _patientsRepository.createTreatmentPlan(
+        patientId: patientId,
+        diagnosis: diagnosis,
+        medicalConditions: medicalConditions,
+        treatmentGoals: treatmentGoals,
+        treatmentPlan: treatmentPlan,
+        durationWeeks: durationWeeks,
+        frequencyPerWeek: frequencyPerWeek,
+        notes: notes,
+      );
+
+      _treatmentPlans.insert(0, createdPlan);
+      update([treatmentPlansId]);
+    });
+  }
+
+  /// Update an existing treatment plan
+  Future<void> updateTreatmentPlan({
+    required String treatmentPlanId,
+    String? diagnosis,
+    List<String>? medicalConditions,
+    String? treatmentGoals,
+    String? treatmentPlan,
+    int? durationWeeks,
+    int? frequencyPerWeek,
+    String? notes,
+    String? status,
+  }) async {
+    await handleAsyncOperation(() async {
+      final updatedPlan = await _patientsRepository.updateTreatmentPlan(
+        treatmentPlanId: treatmentPlanId,
+        diagnosis: diagnosis,
+        medicalConditions: medicalConditions,
+        treatmentGoals: treatmentGoals,
+        treatmentPlan: treatmentPlan,
+        durationWeeks: durationWeeks,
+        frequencyPerWeek: frequencyPerWeek,
+        notes: notes,
+        status: status,
+      );
+
+      final index = _treatmentPlans.indexWhere((p) => p.id == treatmentPlanId);
+      if (index != -1) {
+        _treatmentPlans[index] = updatedPlan;
+        update([treatmentPlansId]);
+      }
+    });
+  }
+
+  /// Delete a treatment plan
+  Future<void> deleteTreatmentPlan(String treatmentPlanId) async {
+    await handleAsyncOperation(() async {
+      await _patientsRepository.deleteTreatmentPlan(treatmentPlanId);
+      _treatmentPlans.removeWhere((p) => p.id == treatmentPlanId);
+      update([treatmentPlansId]);
+    });
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -121,4 +229,3 @@ class PatientDetailController extends BaseController {
     }
   }
 }
-

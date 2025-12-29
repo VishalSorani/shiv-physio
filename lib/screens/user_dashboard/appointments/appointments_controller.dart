@@ -83,6 +83,11 @@ class AppointmentsController extends BaseController {
     });
   }
 
+  /// Refresh appointments (for notification updates)
+  Future<void> refreshAppointments() async {
+    await _loadAppointments();
+  }
+
   Future<void> _loadDoctorInfo() async {
     try {
       final doctorInfoMap = await _appointmentsRepository.getDoctorInfo();

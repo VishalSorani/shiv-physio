@@ -62,7 +62,7 @@ class PatientManagementController extends BaseController {
           update([contentId]);
         }
       }
-    });
+    }, showLoadingIndicator: false);
   }
 
   /// Refresh patients (for pull-to-refresh)
@@ -160,4 +160,3 @@ class PatientManagementController extends BaseController {
     }
   }
 }
-

@@ -15,6 +15,7 @@ class UserDashboardController extends BaseController {
   static const int appointmentsTabIndex = 1;
   static const int galleryTabIndex = 2;
   static const int profileTabIndex = 3;
+  static const int settingsTabIndex = 4;
 
   // Bottom nav items
   static const List<BottomNavItem> bottomNavItems = [
@@ -42,12 +43,18 @@ class UserDashboardController extends BaseController {
       label: 'Profile',
       index: profileTabIndex,
     ),
+    BottomNavItem(
+      icon: Icons.settings_outlined,
+      selectedIcon: Icons.settings,
+      label: 'Settings',
+      index: settingsTabIndex,
+    ),
   ];
 
   void onBottomNavTap(int index) {
     if (_currentTabIndex == index) return;
 
-    // Allow Home, Appointments, and Profile tabs; Gallery shows "Coming soon"
+    // Allow Home, Appointments, Profile, and Settings tabs; Gallery shows "Coming soon"
     if (index == galleryTabIndex) {
       AppSnackBar.comingSoon();
       return;

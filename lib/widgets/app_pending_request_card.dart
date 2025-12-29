@@ -10,6 +10,8 @@ class AppPendingRequestCard extends StatelessWidget {
   final String dateTime;
   final String? patientAvatarUrl;
   final bool isNew;
+  final bool isApproving;
+  final bool isDeclining;
   final VoidCallback? onApprove;
   final VoidCallback? onDecline;
 
@@ -20,6 +22,8 @@ class AppPendingRequestCard extends StatelessWidget {
     required this.dateTime,
     this.patientAvatarUrl,
     this.isNew = false,
+    this.isApproving = false,
+    this.isDeclining = false,
     this.onApprove,
     this.onDecline,
   });
@@ -172,6 +176,7 @@ class AppPendingRequestCard extends StatelessWidget {
                   isDark,
                   onPressed: onDecline,
                   isOutlined: true,
+                  isLoading: isDeclining,
                 ),
               ),
               const SizedBox(width: AppConstants.spacing3),
@@ -183,6 +188,7 @@ class AppPendingRequestCard extends StatelessWidget {
                   isDark,
                   onPressed: onApprove,
                   isPrimary: true,
+                  isLoading: isApproving,
                 ),
               ),
             ],
@@ -200,6 +206,7 @@ class AppPendingRequestCard extends StatelessWidget {
     VoidCallback? onPressed,
     bool isPrimary = false,
     bool isOutlined = false,
+    bool isLoading = false,
   }) {
     final bgColor = isPrimary ? AppColors.primary : Colors.transparent;
     final textColor = isPrimary
@@ -212,18 +219,20 @@ class AppPendingRequestCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onPressed?.call();
-        },
+        onTap: isLoading
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onPressed?.call();
+              },
         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
         child: Container(
           height: 44,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: isLoading ? bgColor.withOpacity(0.7) : bgColor,
             borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
             border: Border.all(color: borderColor, width: 2),
-            boxShadow: isPrimary
+            boxShadow: isPrimary && !isLoading
                 ? [
                     BoxShadow(
                       color: AppColors.primary.withOpacity(0.25),
@@ -235,18 +244,29 @@ class AppPendingRequestCard extends StatelessWidget {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: AppConstants.iconSizeMedium, color: textColor),
-              const SizedBox(width: AppConstants.spacing2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: AppConstants.body2Size,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-            ],
+            children: isLoading
+                ? [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                      ),
+                    ),
+                  ]
+                : [
+                    Icon(icon, size: AppConstants.iconSizeMedium, color: textColor),
+                    const SizedBox(width: AppConstants.spacing2),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: AppConstants.body2Size,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
           ),
         ),
       ),

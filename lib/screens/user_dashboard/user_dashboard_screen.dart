@@ -8,6 +8,7 @@ import 'appointments/appointments_screen.dart';
 import 'gallery/gallery_screen.dart';
 import 'home/home_screen.dart';
 import 'profile/profile_screen.dart';
+import 'settings/settings_screen.dart';
 import 'user_dashboard_controller.dart';
 
 class UserDashboardScreen extends BaseScreenView<UserDashboardController> {
@@ -19,7 +20,9 @@ class UserDashboardScreen extends BaseScreenView<UserDashboardController> {
   Widget buildView(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.backgroundLight;
+    final bgColor = isDark
+        ? AppColors.backgroundDark
+        : AppColors.backgroundLight;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -37,6 +40,9 @@ class UserDashboardScreen extends BaseScreenView<UserDashboardController> {
               break;
             case UserDashboardController.profileTabIndex:
               currentScreen = const ProfileScreen();
+              break;
+            case UserDashboardController.settingsTabIndex:
+              currentScreen = const UserSettingsScreen();
               break;
             case UserDashboardController.homeTabIndex:
             default:

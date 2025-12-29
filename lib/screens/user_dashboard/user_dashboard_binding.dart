@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:shiv_physio_app/screens/user_dashboard/profile/profile_binding.dart';
 import 'appointments/appointments_binding.dart';
 import 'home/home_binding.dart';
+import 'settings/settings_binding.dart';
 import 'user_dashboard_controller.dart';
 
 class UserDashboardBinding extends Bindings {
@@ -11,6 +12,7 @@ class UserDashboardBinding extends Bindings {
     HomeBinding().dependencies();
     AppointmentsBinding().dependencies();
     ProfileBinding().dependencies();
+    UserSettingsBinding().dependencies();
 
     // Bind the main dashboard controller
     Get.lazyPut<UserDashboardController>(() => UserDashboardController());

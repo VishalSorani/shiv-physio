@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
+import '../../../widgets/app_custom_app_bar.dart';
 import 'profile_controller.dart';
 
 class DoctorProfileScreen extends BaseScreenView<DoctorProfileController> {
@@ -20,12 +21,52 @@ class DoctorProfileScreen extends BaseScreenView<DoctorProfileController> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppCustomAppBar(
+        title: 'Manage Profile',
+        centerTitle: true,
+        leading: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Get.back();
+            },
+            borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+            child: Container(
+              padding: const EdgeInsets.all(AppConstants.spacing2),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? Colors.white : const Color(0xFF111518),
+              ),
+            ),
+          ),
+        ),
+        action: GetBuilder<DoctorProfileController>(
+          id: DoctorProfileController.contentId,
+          builder: (controller) => TextButton(
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              if (controller.currentTabIndex == 0) {
+                controller.onSaveProfile();
+              } else {
+                controller.onSaveAvailability();
+              }
+            },
+            child: Text(
+              'Save',
+              style: TextStyle(
+                fontSize: AppConstants.body1Size,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // Header
-            _buildHeader(context, isDark),
             // Tabs
             GetBuilder<DoctorProfileController>(
               id: DoctorProfileController.tabsId,
@@ -54,111 +95,6 @@ class DoctorProfileScreen extends BaseScreenView<DoctorProfileController> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, bool isDark) {
-    final headerBgColor = isDark ? AppColors.surfaceDark : Colors.white;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: headerBgColor,
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.spacing4,
-              vertical: AppConstants.spacing2,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Back button
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      Get.back();
-                    },
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.radiusCircular,
-                    ),
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.arrow_back,
-                        color: isDark ? Colors.white : const Color(0xFF111518),
-                      ),
-                    ),
-                  ),
-                ),
-                // Title
-                Expanded(
-                  child: Text(
-                    'Manage Profile',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: AppConstants.h4Size,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF111518),
-                      letterSpacing: -0.015,
-                    ),
-                  ),
-                ),
-                // Save button
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      final controller = Get.find<DoctorProfileController>();
-                      if (controller.currentTabIndex == 0) {
-                        controller.onSaveProfile();
-                      } else {
-                        controller.onSaveAvailability();
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.radiusSmall,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppConstants.spacing2,
-                        vertical: AppConstants.spacing1,
-                      ),
-                      child: Text(
-                        'Save',
-                        style: TextStyle(
-                          fontSize: AppConstants.body1Size,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                          letterSpacing: 0.015,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

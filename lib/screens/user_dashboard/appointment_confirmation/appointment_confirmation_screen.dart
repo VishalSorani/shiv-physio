@@ -16,11 +16,15 @@ class AppointmentConfirmationScreen
   Widget buildView(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.backgroundLight;
+    final bgColor = isDark
+        ? AppColors.backgroundDark
+        : AppColors.backgroundLight;
     final surfaceColor = isDark ? AppColors.surfaceDark : Colors.white;
     final cardColor = isDark ? const Color(0xFF1c2932) : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF111518);
-    final secondaryTextColor = isDark ? Colors.grey.shade400 : const Color(0xFF60778a);
+    final secondaryTextColor = isDark
+        ? Colors.grey.shade400
+        : const Color(0xFF60778a);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -36,7 +40,12 @@ class AppointmentConfirmationScreen
                 child: Column(
                   children: [
                     // Success Hero Section
-                    _buildSuccessHero(controller, isDark, textColor, secondaryTextColor),
+                    _buildSuccessHero(
+                      controller,
+                      isDark,
+                      textColor,
+                      secondaryTextColor,
+                    ),
                     // Appointment Details Card
                     _buildAppointmentDetailsCard(
                       controller,
@@ -205,76 +214,79 @@ class AppointmentConfirmationScreen
         ),
         child: Column(
           children: [
-                    // Doctor Header
-                    GetBuilder<AppointmentConfirmationController>(
-                      id: AppointmentConfirmationController.doctorInfoId,
-                      builder: (controller) => Container(
-                        padding: const EdgeInsets.all(AppConstants.spacing4),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            // Avatar
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.2),
-                                  width: 2,
-                                ),
-                              ),
-                              child: ClipOval(
-                                child: controller.doctorAvatarUrl != null &&
-                                        controller.doctorAvatarUrl!.isNotEmpty
-                                    ? Image.network(
-                                        controller.doctorAvatarUrl!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
-                                            _buildDefaultAvatar(isDark),
-                                      )
-                                    : _buildDefaultAvatar(isDark),
-                              ),
-                            ),
-                            const SizedBox(width: AppConstants.spacing4),
-                            // Doctor Info
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    controller.doctorSpecialization.toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? AppColors.primary
-                                          : secondaryTextColor,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    controller.doctorName,
-                                    style: TextStyle(
-                                      fontSize: AppConstants.h4Size,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+            // Doctor Header
+            GetBuilder<AppointmentConfirmationController>(
+              id: AppointmentConfirmationController.doctorInfoId,
+              builder: (controller) => Container(
+                padding: const EdgeInsets.all(AppConstants.spacing4),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade100,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // Avatar
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primary.withOpacity(0.2),
+                          width: 2,
                         ),
                       ),
+                      child: ClipOval(
+                        child:
+                            controller.doctorAvatarUrl != null &&
+                                controller.doctorAvatarUrl!.isNotEmpty
+                            ? Image.network(
+                                controller.doctorAvatarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildDefaultAvatar(isDark),
+                              )
+                            : _buildDefaultAvatar(isDark),
+                      ),
                     ),
+                    const SizedBox(width: AppConstants.spacing4),
+                    // Doctor Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            controller.doctorSpecialization.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? AppColors.primary
+                                  : secondaryTextColor,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            controller.doctorName,
+                            style: TextStyle(
+                              fontSize: AppConstants.h4Size,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             // Details
             Padding(
               padding: const EdgeInsets.all(AppConstants.spacing4),
@@ -338,11 +350,7 @@ class AppointmentConfirmationScreen
             color: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: secondaryTextColor,
-          ),
+          child: Icon(icon, size: 20, color: secondaryTextColor),
         ),
         const SizedBox(width: AppConstants.spacing3),
         Expanded(
@@ -411,7 +419,9 @@ class AppointmentConfirmationScreen
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade100,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -467,7 +477,9 @@ class AppointmentConfirmationScreen
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade100,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -544,47 +556,47 @@ class AppointmentConfirmationScreen
       child: Column(
         children: [
           // Add to Calendar Button
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: controller.onAddToCalendar,
-              borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: AppConstants.spacing2),
-                    Text(
-                      'Add to Calendar',
-                      style: TextStyle(
-                        fontSize: AppConstants.body1Size,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppConstants.spacing3),
+          // Material(
+          //   color: Colors.transparent,
+          //   child: InkWell(
+          //     onTap: controller.onAddToCalendar,
+          //     borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+          //     child: Container(
+          //       height: 48,
+          //       decoration: BoxDecoration(
+          //         color: AppColors.primary,
+          //         borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+          //         boxShadow: [
+          //           BoxShadow(
+          //             color: AppColors.primary.withOpacity(0.3),
+          //             blurRadius: 12,
+          //             offset: const Offset(0, 4),
+          //           ),
+          //         ],
+          //       ),
+          //       child: Row(
+          //         mainAxisAlignment: MainAxisAlignment.center,
+          //         children: [
+          //           Icon(
+          //             Icons.calendar_today,
+          //             size: 20,
+          //             color: Colors.white,
+          //           ),
+          //           const SizedBox(width: AppConstants.spacing2),
+          //           Text(
+          //             'Add to Calendar',
+          //             style: TextStyle(
+          //               fontSize: AppConstants.body1Size,
+          //               fontWeight: FontWeight.bold,
+          //               color: Colors.white,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          // const SizedBox(height: AppConstants.spacing3),
           // View Appointments Button
           Material(
             color: Colors.transparent,
@@ -595,7 +607,9 @@ class AppointmentConfirmationScreen
                 height: 48,
                 decoration: BoxDecoration(
                   color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.radiusCircular,
+                  ),
                   border: Border.all(
                     color: isDark ? Colors.grey.shade700 : Colors.grey.shade200,
                     width: 2,
@@ -621,4 +635,3 @@ class AppointmentConfirmationScreen
     );
   }
 }
-

@@ -13,8 +13,12 @@ class AppAppointmentRequestCard extends StatelessWidget {
   final String date;
   final String time;
   final String reasonForVisit;
+  final AppointmentStatus? appointmentStatus; // Actual appointment status
   final bool isRejecting; // Shows rejection input area
   final String? rejectionReason;
+  final bool isAccepting; // Shows loading on accept button
+  final bool isConfirmingReject; // Shows loading on confirm reject button
+  final bool showActions; // Whether to show Accept/Reject buttons (only for pending)
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
   final VoidCallback? onCancelReject;
@@ -27,11 +31,15 @@ class AppAppointmentRequestCard extends StatelessWidget {
     required this.patientAgeGender,
     this.patientAvatarUrl,
     this.status,
+    this.appointmentStatus,
     required this.date,
     required this.time,
     required this.reasonForVisit,
     this.isRejecting = false,
     this.rejectionReason,
+    this.isAccepting = false,
+    this.isConfirmingReject = false,
+    this.showActions = true, // Default to true for backward compatibility
     this.onAccept,
     this.onReject,
     this.onCancelReject,
@@ -234,8 +242,8 @@ class AppAppointmentRequestCard extends StatelessWidget {
                     _buildRejectionInput(context, isDark),
                     const SizedBox(height: AppConstants.spacing4),
                   ],
-                  // Actions
-                  if (!isRejecting)
+                  // Actions - only show for pending appointments
+                  if (showActions && !isRejecting)
                     Row(
                       children: [
                         Expanded(
@@ -257,10 +265,14 @@ class AppAppointmentRequestCard extends StatelessWidget {
                             isDark,
                             onPressed: onAccept,
                             isPrimary: true,
+                            isLoading: isAccepting,
                           ),
                         ),
                       ],
                     ),
+                  // Status message for non-pending appointments
+                  if (!showActions && !isRejecting)
+                    _buildStatusMessage(context, isDark),
                 ],
               ),
             ),
@@ -465,24 +477,37 @@ class AppAppointmentRequestCard extends StatelessWidget {
                   color: Colors.red.shade600,
                   borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
                   child: InkWell(
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      onConfirmReject?.call();
-                    },
+                    onTap: isConfirmingReject
+                        ? null
+                        : () {
+                            HapticFeedback.mediumImpact();
+                            onConfirmReject?.call();
+                          },
                     borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         vertical: AppConstants.spacing2,
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        'Confirm Reject',
-                        style: TextStyle(
-                          fontSize: AppConstants.body2Size,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: isConfirmingReject
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              'Confirm Reject',
+                              style: TextStyle(
+                                fontSize: AppConstants.body2Size,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -502,6 +527,7 @@ class AppAppointmentRequestCard extends StatelessWidget {
     VoidCallback? onPressed,
     bool isPrimary = false,
     bool isOutlined = false,
+    bool isLoading = false,
   }) {
     final bgColor = isPrimary
         ? AppColors.primary
@@ -516,18 +542,20 @@ class AppAppointmentRequestCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onPressed?.call();
-        },
+        onTap: isLoading
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onPressed?.call();
+              },
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         child: Container(
           height: 40,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: isLoading ? bgColor.withOpacity(0.7) : bgColor,
             borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
             border: Border.all(color: borderColor),
-            boxShadow: isPrimary
+            boxShadow: isPrimary && !isLoading
                 ? [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -539,20 +567,86 @@ class AppAppointmentRequestCard extends StatelessWidget {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: AppConstants.iconSizeMedium, color: textColor),
-              const SizedBox(width: AppConstants.spacing2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: AppConstants.body2Size,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-            ],
+            children: isLoading
+                ? [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                      ),
+                    ),
+                  ]
+                : [
+                    Icon(icon, size: AppConstants.iconSizeMedium, color: textColor),
+                    const SizedBox(width: AppConstants.spacing2),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: AppConstants.body2Size,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatusMessage(BuildContext context, bool isDark) {
+    // Determine message based on appointment status
+    String message;
+    IconData icon;
+    Color color;
+
+    if (appointmentStatus == AppointmentStatus.confirmed) {
+      message = 'Appointment Confirmed';
+      icon = Icons.check_circle;
+      color = Colors.green;
+    } else if (appointmentStatus == AppointmentStatus.cancelled) {
+      message = 'Appointment Rejected';
+      icon = Icons.cancel;
+      color = Colors.red;
+    } else if (appointmentStatus == AppointmentStatus.completed) {
+      message = 'Appointment Completed';
+      icon = Icons.check_circle_outline;
+      color = Colors.blue;
+    } else {
+      message = 'This appointment has been processed';
+      icon = Icons.info_outline;
+      color = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.spacing3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: AppConstants.iconSizeMedium,
+            color: color,
+          ),
+          const SizedBox(width: AppConstants.spacing2),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: AppConstants.body2Size,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -8,6 +8,7 @@ class AppUserTopBar extends StatelessWidget {
   final String? avatarUrl;
   final VoidCallback? onNotificationTap;
   final VoidCallback? onProfileTap;
+  final int unreadNotificationCount;
 
   const AppUserTopBar({
     super.key,
@@ -15,6 +16,7 @@ class AppUserTopBar extends StatelessWidget {
     this.avatarUrl,
     this.onNotificationTap,
     this.onProfileTap,
+    this.unreadNotificationCount = 0,
   });
 
   @override
@@ -113,25 +115,64 @@ class AppUserTopBar extends StatelessWidget {
             child: InkWell(
               onTap: onNotificationTap,
               borderRadius: BorderRadius.circular(20),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceDark : Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.surfaceDark : Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.notifications_outlined,
-                  color: isDark ? Colors.white : const Color(0xFF111518),
-                  size: AppConstants.iconSizeMedium,
-                ),
+                    child: Icon(
+                      Icons.notifications_outlined,
+                      color: isDark ? Colors.white : const Color(0xFF111518),
+                      size: AppConstants.iconSizeMedium,
+                    ),
+                  ),
+                  // Unread notification badge
+                  if (unreadNotificationCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.backgroundDark
+                                : Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          unreadNotificationCount > 99
+                              ? '99+'
+                              : unreadNotificationCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

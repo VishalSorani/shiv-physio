@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
+import '../../../widgets/app_custom_app_bar.dart';
 import 'settings_controller.dart';
 
 class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
@@ -20,131 +21,47 @@ class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppCustomAppBar(title: 'Settings', centerTitle: true),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // Header
-            _buildHeader(context, isDark),
             // Content
             Expanded(
               child: GetBuilder<DoctorSettingsController>(
                 id: DoctorSettingsController.settingsId,
                 builder: (controller) => SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        top: AppConstants.spacing4,
-                        bottom: AppConstants.spacing8 + 64, // Space for bottom nav
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Notifications Section
-                          _buildSectionHeader(
-                            context,
-                            'Notifications',
-                            isDark,
-                          ),
-                          _buildNotificationSettings(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing6),
-                          // Preferences Section
-                          _buildSectionHeader(
-                            context,
-                            'Preferences',
-                            isDark,
-                          ),
-                          _buildPreferencesSettings(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing6),
-                          // Account Section
-                          _buildSectionHeader(
-                            context,
-                            'Account',
-                            isDark,
-                          ),
-                          _buildAccountSettings(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing6),
-                          // Support Section
-                          _buildSectionHeader(
-                            context,
-                            'Support',
-                            isDark,
-                          ),
-                          _buildSupportSettings(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing6),
-                          // Logout Section
-                          _buildLogoutButton(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing4),
-                        ],
-                      ),
-                    )),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, bool isDark) {
-    final headerBgColor = isDark ? AppColors.surfaceDark : Colors.white;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: headerBgColor,
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.spacing4,
-          vertical: AppConstants.spacing3,
-        ),
-        child: Row(
-          children: [
-            // Back button (not needed as it's in bottom nav)
-            const SizedBox(width: 48),
-            // Title
-            Expanded(
-              child: Text(
-                'Settings',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: AppConstants.h4Size,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF111518),
-                  letterSpacing: -0.015,
+                  padding: EdgeInsets.only(
+                    top: AppConstants.spacing4,
+                    bottom: AppConstants.spacing8 + 64, // Space for bottom nav
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Notifications Section
+                      _buildSectionHeader(context, 'Notifications', isDark),
+                      _buildNotificationSettings(context, controller, isDark),
+                      const SizedBox(height: AppConstants.spacing6),
+                      // Preferences Section
+                      _buildSectionHeader(context, 'Preferences', isDark),
+                      _buildPreferencesSettings(context, controller, isDark),
+                      const SizedBox(height: AppConstants.spacing6),
+                      // Account Section
+                      _buildSectionHeader(context, 'Account', isDark),
+                      _buildAccountSettings(context, controller, isDark),
+                      const SizedBox(height: AppConstants.spacing6),
+                      // Support Section
+                      _buildSectionHeader(context, 'Support', isDark),
+                      _buildSupportSettings(context, controller, isDark),
+                      const SizedBox(height: AppConstants.spacing6),
+                      // Logout Section
+                      _buildLogoutButton(context, controller, isDark),
+                      const SizedBox(height: AppConstants.spacing4),
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 48),
           ],
         ),
       ),
@@ -386,7 +303,9 @@ class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
             border: showDivider
                 ? Border(
                     bottom: BorderSide(
-                      color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+                      color: isDark
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade100,
                     ),
                   )
                 : null,
@@ -400,11 +319,7 @@ class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
                 ),
-                child: Icon(
-                  icon,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
+                child: Icon(icon, color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: AppConstants.spacing4),
               Expanded(
@@ -464,10 +379,7 @@ class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
             decoration: BoxDecoration(
               color: Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-              border: Border.all(
-                color: Colors.red.withOpacity(0.3),
-                width: 1,
-              ),
+              border: Border.all(color: Colors.red.withOpacity(0.3), width: 1),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -490,4 +402,3 @@ class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
     );
   }
 }
-

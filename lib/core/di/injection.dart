@@ -21,6 +21,8 @@ import 'package:shiv_physio_app/data/modules/doctor_home_repository.dart';
 import 'package:shiv_physio_app/data/modules/appointments_repository.dart';
 import 'package:shiv_physio_app/data/modules/patients_repository.dart';
 import 'package:shiv_physio_app/data/modules/content_repository.dart';
+import 'package:shiv_physio_app/data/modules/notification_repository.dart';
+import 'package:dio/dio.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:google_sign_in/google_sign_in.dart';
@@ -124,10 +126,20 @@ Future<void> init() async {
     fenix: true,
   );
 
+  Get.lazyPut<NotificationRepository>(
+    () => NotificationRepository(
+      supabase: Get.find<SupabaseClient>(),
+      storageService: Get.find<StorageService>(),
+      dio: Dio(),
+    ),
+    fenix: true,
+  );
+
   Get.lazyPut<AppointmentsRepository>(
     () => AppointmentsRepository(
       supabase: Get.find<SupabaseClient>(),
       storageService: Get.find<StorageService>(),
+      notificationRepository: Get.find<NotificationRepository>(),
     ),
     fenix: true,
   );
@@ -182,22 +194,22 @@ Future<void> init() async {
   Get.lazyPut<DeviceInfoClient>(() => DeviceInfoClient(), fenix: true);
 
   // ======== Repository ========
-    // Get.lazyPut<AuthRepository>(
-    //   () => AuthRepository(
-    //     backendApiCallService: Get.find<BackendApiCallService>(),
-    //     networkService: Get.find<NetworkService>(),
-    //     storageService: Get.find<StorageService>(),
-    //   ),
-    //   fenix: true,
-    // );
+  // Get.lazyPut<AuthRepository>(
+  //   () => AuthRepository(
+  //     backendApiCallService: Get.find<BackendApiCallService>(),
+  //     networkService: Get.find<NetworkService>(),
+  //     storageService: Get.find<StorageService>(),
+  //   ),
+  //   fenix: true,
+  // );
 
-    // Get.lazyPut<UserRepository>(
-    //   () => UserRepository(
-    //     backendApiClient: Get.find<BackendApiCallService>(),
-    //     networkService: Get.find<NetworkService>(),
-    //     storageProvider: Get.find<StorageService>(),
-    //     deviceInfoClient: Get.find<DeviceInfoClient>(),
-    //   ),
-    //   fenix: true,
-    // );
+  // Get.lazyPut<UserRepository>(
+  //   () => UserRepository(
+  //     backendApiClient: Get.find<BackendApiCallService>(),
+  //     networkService: Get.find<NetworkService>(),
+  //     storageProvider: Get.find<StorageService>(),
+  //     deviceInfoClient: Get.find<DeviceInfoClient>(),
+  //   ),
+  //   fenix: true,
+  // );
 }

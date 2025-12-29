@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
+import '../../../widgets/app_custom_app_bar.dart';
 import 'book_appointment_controller.dart';
 
 class BookAppointmentScreen extends BaseScreenView<BookAppointmentController> {
@@ -25,12 +26,30 @@ class BookAppointmentScreen extends BaseScreenView<BookAppointmentController> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppCustomAppBar(
+        title: 'Book Appointment',
+        centerTitle: true,
+        leading: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: controller.onBack,
+            borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+            child: Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? Colors.white : const Color(0xFF111518),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // App Bar
-            _buildAppBar(context, isDark, controller, surfaceColor),
             // Content
             Expanded(
               child: SingleChildScrollView(
@@ -101,60 +120,6 @@ class BookAppointmentScreen extends BaseScreenView<BookAppointmentController> {
     );
   }
 
-  Widget _buildAppBar(
-    BuildContext context,
-    bool isDark,
-    BookAppointmentController controller,
-    Color surfaceColor,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spacing4,
-        vertical: AppConstants.spacing3,
-      ),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: controller.onBack,
-              borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
-              child: Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.arrow_back,
-                  color: isDark ? Colors.white : const Color(0xFF111518),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'Book Appointment',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: AppConstants.h4Size,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF111518),
-              ),
-            ),
-          ),
-          const SizedBox(width: 40), // Balance the back button
-        ],
-      ),
-    );
-  }
 
   Widget _buildDoctorProfile(
     BookAppointmentController controller,

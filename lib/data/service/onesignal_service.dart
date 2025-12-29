@@ -10,7 +10,7 @@ class OneSignalService {
   static bool _isInitialized = false;
 
   /// OneSignal App ID
-  static const String _appId = '';
+  static const String _appId = '534bfa2f-3aad-4158-8c0f-2fdec84feae3';
 
   Function(dynamic)? _onNotificationReceived;
   Function(dynamic)? _onNotificationOpened;
@@ -58,11 +58,9 @@ class OneSignalService {
       // Note: API methods may vary by SDK version - using dynamic to handle differences
       try {
         // Try to set up foreground notification handler
-        // The exact method name may vary - this is a placeholder that will be adjusted
-        // once the SDK is properly installed and we can verify the exact API
         final notifications = OneSignal.Notifications;
-        // Attempt to add listener - method name may need adjustment
         try {
+          // Try the standard API first
           (notifications as dynamic).addForegroundLifecycleListener?.call((
             OSNotification notification,
           ) {
@@ -82,6 +80,7 @@ class OneSignalService {
         // Try to set up click handler
         final notifications = OneSignal.Notifications;
         try {
+          // Try the standard API first
           (notifications as dynamic).addClickListener?.call((dynamic result) {
             debugPrint('📬 OneSignal notification opened');
             try {

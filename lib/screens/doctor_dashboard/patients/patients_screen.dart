@@ -6,8 +6,11 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
 import '../../../widgets/app_patient_card.dart';
+import '../../../widgets/app_custom_app_bar.dart';
 import 'patient_detail_screen.dart';
 import 'patient_detail_binding.dart';
+import 'add_edit_patient_screen.dart';
+import 'add_edit_patient_binding.dart';
 import 'patients_controller.dart';
 
 class PatientManagementScreen
@@ -24,20 +27,58 @@ class PatientManagementScreen
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppCustomAppBar(
+        title: 'My Patients',
+        centerTitle: true,
+        leading: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Get.back();
+            },
+            borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+            child: Container(
+              padding: const EdgeInsets.all(AppConstants.spacing2),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? Colors.white : const Color(0xFF111518),
+              ),
+            ),
+          ),
+        ),
+        action: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Get.to(
+                () => const AddEditPatientScreen(),
+                binding: AddEditPatientBinding(),
+              )?.then((result) {
+                // Refresh patients list if patient was created/updated
+                if (result == true) {
+                  Get.find<PatientManagementController>().refreshPatients();
+                }
+              });
+            },
+            borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+            child: Container(
+              padding: const EdgeInsets.all(AppConstants.spacing2),
+              child: Icon(Icons.person_add, color: AppColors.primary),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // Header
-            _buildHeader(context, isDark),
             // Search bar
             GetBuilder<PatientManagementController>(
               id: PatientManagementController.searchId,
-              builder: (controller) => _buildSearchBar(
-                context,
-                controller,
-                isDark,
-              ),
+              builder: (controller) =>
+                  _buildSearchBar(context, controller, isDark),
             ),
             // Content
             Expanded(
@@ -100,7 +141,9 @@ class PatientManagementScreen
                                       onTap: () {
                                         Get.to(
                                           () => const PatientDetailScreen(),
-                                          binding: PatientDetailBinding(patient.patient.id),
+                                          binding: PatientDetailBinding(
+                                            patient.patient.id,
+                                          ),
                                         );
                                       },
                                       onMoreTap: () {
@@ -123,103 +166,6 @@ class PatientManagementScreen
                     },
                   );
                 },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, bool isDark) {
-    final headerBgColor = isDark ? const Color(0xFF1A2632) : Colors.white;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: headerBgColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.spacing4,
-          vertical: AppConstants.spacing3,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Back button
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  Get.back();
-                },
-                borderRadius: BorderRadius.circular(
-                  AppConstants.radiusCircular,
-                ),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: isDark ? Colors.white : const Color(0xFF111518),
-                  ),
-                ),
-              ),
-            ),
-            // Title
-            Expanded(
-              child: Text(
-                'My Patients',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: AppConstants.h3Size,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF111518),
-                  letterSpacing: -0.015,
-                ),
-              ),
-            ),
-            // Add patient button
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  // TODO: Navigate to add patient screen
-                },
-                borderRadius: BorderRadius.circular(
-                  AppConstants.radiusCircular,
-                ),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.person_add,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
               ),
             ),
           ],
@@ -259,10 +205,7 @@ class PatientManagementScreen
               color: Colors.grey.shade400,
               fontSize: AppConstants.body1Size,
             ),
-            prefixIcon: Icon(
-              Icons.search,
-              color: Colors.grey.shade400,
-            ),
+            prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppConstants.spacing4,
@@ -289,8 +232,10 @@ class PatientManagementScreen
 
     final pageNumbers = controller.getPageNumbers();
     final startIndex = (controller.currentPage - 1) * 10 + 1;
-    final endIndex = (startIndex + controller.patients.length - 1)
-        .clamp(0, controller.totalPatients);
+    final endIndex = (startIndex + controller.patients.length - 1).clamp(
+      0,
+      controller.totalPatients,
+    );
 
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacing6),
@@ -329,8 +274,8 @@ class PatientManagementScreen
                       Icons.chevron_left,
                       color: controller.currentPage > 1
                           ? (isDark
-                              ? Colors.grey.shade300
-                              : Colors.grey.shade600)
+                                ? Colors.grey.shade300
+                                : Colors.grey.shade600)
                           : Colors.grey.shade400,
                     ),
                   ),
@@ -401,11 +346,12 @@ class PatientManagementScreen
                             color: isActive
                                 ? Colors.white
                                 : (isDark
-                                    ? Colors.grey.shade300
-                                    : Colors.grey.shade600),
+                                      ? Colors.grey.shade300
+                                      : Colors.grey.shade600),
                             fontSize: AppConstants.body2Size,
-                            fontWeight:
-                                isActive ? FontWeight.bold : FontWeight.w500,
+                            fontWeight: isActive
+                                ? FontWeight.bold
+                                : FontWeight.w500,
                           ),
                         ),
                       ),
@@ -443,8 +389,8 @@ class PatientManagementScreen
                       Icons.chevron_right,
                       color: controller.hasMorePages
                           ? (isDark
-                              ? Colors.grey.shade300
-                              : Colors.grey.shade600)
+                                ? Colors.grey.shade300
+                                : Colors.grey.shade600)
                           : Colors.grey.shade400,
                     ),
                   ),
@@ -504,4 +450,3 @@ class PatientManagementScreen
     );
   }
 }
-

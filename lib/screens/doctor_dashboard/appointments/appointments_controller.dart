@@ -21,12 +21,23 @@ class DoctorAppointmentsController extends BaseController {
   int _selectedFilterIndex = 0;
   int get selectedFilterIndex => _selectedFilterIndex;
 
+  // Date filter
+  DateTime? _selectedDate;
+  DateTime? get selectedDate => _selectedDate;
+
   // Rejection state
   int? _rejectingIndex;
   int? get rejectingIndex => _rejectingIndex;
 
   final Map<int, String> _rejectionReasons = {};
   String? rejectionReasons(int index) => _rejectionReasons[index];
+
+  // Loading states for buttons
+  int? _acceptingIndex;
+  int? get acceptingIndex => _acceptingIndex;
+
+  int? _confirmingRejectIndex;
+  int? get confirmingRejectIndex => _confirmingRejectIndex;
 
   // Appointment requests
   List<AppointmentRequest> _appointmentRequests = [];
@@ -36,15 +47,28 @@ class DoctorAppointmentsController extends BaseController {
 
     switch (_selectedFilterIndex) {
       case 0: // All
+        // Show all appointments
         break;
-      case 1: // Urgency
-        filtered = filtered.where((r) => r.requestStatus == RequestStatus.urgent).toList();
+      case 1: // Accepted (Confirmed)
+        filtered = filtered.where((r) => 
+          r.appointment.status == AppointmentStatus.confirmed
+        ).toList();
         break;
-      case 2: // Date
-        // Sort by date (already sorted by repository)
+      case 2: // Rejected (Cancelled by doctor)
+        filtered = filtered.where((r) => 
+          r.appointment.status == AppointmentStatus.cancelled &&
+          r.appointment.cancelledBy != null
+        ).toList();
         break;
-      case 3: // Newest
-        // Sort by created_at descending (already sorted by repository)
+      case 3: // Date filter
+        if (_selectedDate != null) {
+          filtered = filtered.where((r) {
+            final appointmentDate = r.appointment.startAt.toLocal();
+            return appointmentDate.year == _selectedDate!.year &&
+                   appointmentDate.month == _selectedDate!.month &&
+                   appointmentDate.day == _selectedDate!.day;
+          }).toList();
+        }
         break;
     }
 
@@ -77,21 +101,43 @@ class DoctorAppointmentsController extends BaseController {
   void onFilterChanged(int index) {
     if (_selectedFilterIndex != index) {
       _selectedFilterIndex = index;
+      if (index != 3) {
+        // Clear date filter if not selecting date filter
+        _selectedDate = null;
+      }
       update([filtersId, listId]);
     }
   }
 
+  void onDateSelected(DateTime? date) {
+    _selectedDate = date;
+    update([filtersId, listId]);
+  }
+
+  void clearDateFilter() {
+    _selectedDate = null;
+    update([filtersId, listId]);
+  }
+
   Future<void> onAcceptRequest(int index) async {
     final request = appointmentRequests[index];
-    await handleAsyncOperation(() async {
-      await _appointmentsRepository.approveAppointment(request.appointment.id);
-      // Reload requests
-      await loadAppointmentRequests();
-      AppSnackBar.success(
-        title: 'Success',
-        message: 'Appointment approved successfully',
-      );
-    });
+    _acceptingIndex = index;
+    update([listId]);
+    
+    try {
+      await handleAsyncOperation(() async {
+        await _appointmentsRepository.approveAppointment(request.appointment.id);
+        // Reload requests to update the list
+        await loadAppointmentRequests();
+        AppSnackBar.success(
+          title: 'Success',
+          message: 'Appointment approved successfully',
+        );
+      });
+    } finally {
+      _acceptingIndex = null;
+      update([listId]);
+    }
   }
 
   void onRejectRequest(int index) {
@@ -121,20 +167,28 @@ class DoctorAppointmentsController extends BaseController {
     }
 
     final request = appointmentRequests[index];
-    await handleAsyncOperation(() async {
-      await _appointmentsRepository.rejectAppointment(
-        request.appointment.id,
-        reason: reason,
-      );
-      // Reload requests
-      await loadAppointmentRequests();
-      _rejectingIndex = null;
-      _rejectionReasons.remove(index);
-      AppSnackBar.success(
-        title: 'Success',
-        message: 'Appointment rejected',
-      );
-    });
+    _confirmingRejectIndex = index;
+    update([listId]);
+    
+    try {
+      await handleAsyncOperation(() async {
+        await _appointmentsRepository.rejectAppointment(
+          request.appointment.id,
+          reason: reason,
+        );
+        // Reload requests to update the list
+        await loadAppointmentRequests();
+        _rejectingIndex = null;
+        _rejectionReasons.remove(index);
+        AppSnackBar.success(
+          title: 'Success',
+          message: 'Appointment rejected',
+        );
+      });
+    } finally {
+      _confirmingRejectIndex = null;
+      update([listId]);
+    }
   }
 
   @override

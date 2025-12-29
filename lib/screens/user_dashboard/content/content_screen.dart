@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/base_class/base_screen.dart';
 import '../../../data/models/content_item.dart';
+import '../../../widgets/app_custom_app_bar.dart';
 import '../../../widgets/inline_video_player.dart';
 import 'content_controller.dart';
 
@@ -24,15 +25,33 @@ class ContentScreen extends BaseScreenView<ContentController> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppCustomAppBar(
+        title: 'Clinic Content',
+        centerTitle: true,
+        leading: GetBuilder<ContentController>(
+          id: ContentController.appBarId,
+          builder: (controller) => Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: controller.onBack,
+              borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+              child: Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.arrow_back,
+                  color: isDark ? Colors.white : const Color(0xFF333333),
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // App Bar
-            GetBuilder<ContentController>(
-              id: ContentController.appBarId,
-              builder: (controller) =>
-                  _buildAppBar(context, isDark, controller),
-            ),
             // Content List
             Expanded(
               child: GetBuilder<ContentController>(
@@ -90,57 +109,6 @@ class ContentScreen extends BaseScreenView<ContentController> {
     );
   }
 
-  Widget _buildAppBar(
-    BuildContext context,
-    bool isDark,
-    ContentController controller,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spacing4,
-        vertical: AppConstants.spacing4,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.backgroundDark : const Color(0xFFF5F5F5),
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: controller.onBack,
-              borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
-              child: Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.arrow_back,
-                  color: isDark ? Colors.white : const Color(0xFF333333),
-                  size: 24,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppConstants.spacing4),
-          Text(
-            'Clinic Content',
-            style: TextStyle(
-              fontSize: AppConstants.h3Size,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : const Color(0xFF333333),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildContentCard(
     BuildContext context,

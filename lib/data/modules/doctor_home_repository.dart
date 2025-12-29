@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../base_class/base_repository.dart';
-import '../models/appointment.dart';
 import '../models/appointment_request.dart';
 import '../service/storage_service.dart';
 
@@ -112,9 +111,21 @@ class DoctorHomeRepository extends BaseRepository {
 
       logD('Fetching today\'s schedule for doctor: $doctorId');
 
+      // Get current date in local timezone
       final now = DateTime.now();
-      final startOfDay = DateTime(now.year, now.month, now.day);
-      final endOfDay = startOfDay.add(const Duration(days: 1));
+      // Create start of day in local timezone (midnight local time)
+      final startOfDayLocal = DateTime(now.year, now.month, now.day);
+      // Create end of day in local timezone (start of next day)
+      final endOfDayLocal = startOfDayLocal.add(const Duration(days: 1));
+      
+      // Convert to UTC for database comparison
+      // Since database stores timestamptz in UTC, we need to compare with UTC boundaries
+      // toUtc() converts the local time to UTC, which is what we need for the database
+      final startOfDayUtc = startOfDayLocal.toUtc();
+      final endOfDayUtc = endOfDayLocal.toUtc();
+
+      logD('Local date range: ${startOfDayLocal.toIso8601String()} to ${endOfDayLocal.toIso8601String()}');
+      logD('UTC date range: ${startOfDayUtc.toIso8601String()} to ${endOfDayUtc.toIso8601String()}');
 
       final response = await _supabase
           .from('appointments')
@@ -129,9 +140,9 @@ class DoctorHomeRepository extends BaseRepository {
             )
           ''')
           .eq('doctor_id', doctorId)
-          .or('status.eq.pending,status.eq.confirmed')
-          .gte('start_at', startOfDay.toIso8601String())
-          .lt('start_at', endOfDay.toIso8601String())
+          .eq('status', 'confirmed') // Only show approved/confirmed appointments
+          .gte('start_at', startOfDayUtc.toIso8601String())
+          .lt('start_at', endOfDayUtc.toIso8601String())
           .order('start_at', ascending: true);
 
       if (response.isEmpty) {

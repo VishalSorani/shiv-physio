@@ -19,6 +19,7 @@ class User {
   final String? clinicName;
   final String? clinicAddress;
   final int? consultationFee;
+  final String? onesignalId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -39,6 +40,7 @@ class User {
     this.clinicName,
     this.clinicAddress,
     this.consultationFee,
+    this.onesignalId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -62,6 +64,7 @@ class User {
       clinicName: ModelParsers.stringOrNull(json['clinic_name']),
       clinicAddress: ModelParsers.stringOrNull(json['clinic_address']),
       consultationFee: ModelParsers.intOrNull(json['consultation_fee']),
+      onesignalId: ModelParsers.stringOrNull(json['onesignal_id']),
       createdAt: ModelParsers.dateTime(json['created_at'], fallback: now),
       updatedAt: ModelParsers.dateTime(json['updated_at'], fallback: now),
     );
@@ -85,6 +88,7 @@ class User {
       'clinic_name': clinicName,
       'clinic_address': clinicAddress,
       'consultation_fee': consultationFee,
+      'onesignal_id': onesignalId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -107,6 +111,7 @@ class User {
     String? clinicName,
     String? clinicAddress,
     int? consultationFee,
+    String? onesignalId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -127,6 +132,7 @@ class User {
       clinicName: clinicName ?? this.clinicName,
       clinicAddress: clinicAddress ?? this.clinicAddress,
       consultationFee: consultationFee ?? this.consultationFee,
+      onesignalId: onesignalId ?? this.onesignalId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

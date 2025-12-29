@@ -39,7 +39,7 @@ class ContentController extends BaseController {
         _isLoading = false;
         update([contentListId]);
       }
-    });
+    }, showLoadingIndicator: false);
   }
 
   void onBack() {
@@ -50,7 +50,7 @@ class ContentController extends BaseController {
     if (index < 0 || index >= _contentItems.length) return;
     final content = _contentItems[index];
     HapticFeedback.lightImpact();
-    
+
     // For images, show image viewer dialog
     // Videos play inline in the card, so no action needed on tap
     if (content.type == ContentType.image) {
@@ -77,7 +77,8 @@ class ContentController extends BaseController {
       case ContentCategory.exercise:
         if (content.description?.toLowerCase().contains('beginner') == true) {
           return 'Beginner';
-        } else if (content.description?.toLowerCase().contains('advanced') == true) {
+        } else if (content.description?.toLowerCase().contains('advanced') ==
+            true) {
           return 'Advanced';
         }
         return null;
@@ -133,4 +134,3 @@ class ContentController extends BaseController {
     }
   }
 }
-

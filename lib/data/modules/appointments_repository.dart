@@ -4,18 +4,32 @@ import '../base_class/base_repository.dart';
 import '../models/appointment.dart';
 import '../models/appointment_request.dart';
 import '../models/available_slot.dart';
+import '../models/user.dart' as model;
 import '../service/storage_service.dart';
+import 'package:get/get.dart';
+import 'notification_repository.dart';
 
 /// Repository for managing doctor appointments
 class AppointmentsRepository extends BaseRepository {
   final SupabaseClient _supabase;
   final StorageService _storageService;
+  NotificationRepository? _notificationRepository;
 
   AppointmentsRepository({
     required SupabaseClient supabase,
     required StorageService storageService,
+    NotificationRepository? notificationRepository,
   }) : _supabase = supabase,
-       _storageService = storageService;
+       _storageService = storageService {
+    // Get notification repository from DI if not provided
+    try {
+      _notificationRepository =
+          notificationRepository ?? Get.find<NotificationRepository>();
+    } catch (e) {
+      logW('NotificationRepository not available: $e');
+      _notificationRepository = null;
+    }
+  }
 
   /// Get current doctor ID from storage
   String? _getDoctorId() {
@@ -86,7 +100,6 @@ class AppointmentsRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching appointment requests', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -100,17 +113,49 @@ class AppointmentsRepository extends BaseRepository {
 
       logD('Approving appointment: $appointmentId');
 
-      await _supabase
+      final response = await _supabase
           .from('appointments')
           .update({'status': 'confirmed'})
           .eq('id', appointmentId)
-          .eq('doctor_id', doctorId);
+          .eq('doctor_id', doctorId)
+          .select()
+          .single();
+
+      final appointment = Appointment.fromJson(response);
+
+      // Get patient info for notification
+      model.User? patient;
+      try {
+        final patientResponse = await _supabase
+            .from('users')
+            .select()
+            .eq('id', appointment.patientId)
+            .maybeSingle();
+
+        if (patientResponse != null) {
+          patient = model.User.fromJson(patientResponse);
+        }
+      } catch (e) {
+        logW('Error fetching patient for notification: $e');
+      }
 
       logI('Appointment approved successfully');
+
+      // Send notification
+      try {
+        if (_notificationRepository != null && patient != null) {
+          await _notificationRepository!.sendAppointmentApprovedNotification(
+            appointment: appointment,
+            patient: patient,
+          );
+        }
+      } catch (e) {
+        logE('Error sending appointment approved notification', error: e);
+        // Don't throw - notification failure shouldn't break approval
+      }
     } catch (e) {
       logE('Error approving appointment', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -124,7 +169,7 @@ class AppointmentsRepository extends BaseRepository {
 
       logD('Rejecting appointment: $appointmentId');
 
-      await _supabase
+      final response = await _supabase
           .from('appointments')
           .update({
             'status': 'cancelled',
@@ -132,13 +177,46 @@ class AppointmentsRepository extends BaseRepository {
             'cancelled_by': doctorId,
           })
           .eq('id', appointmentId)
-          .eq('doctor_id', doctorId);
+          .eq('doctor_id', doctorId)
+          .select()
+          .single();
+
+      final appointment = Appointment.fromJson(response);
+
+      // Get patient info for notification
+      model.User? patient;
+      try {
+        final patientResponse = await _supabase
+            .from('users')
+            .select()
+            .eq('id', appointment.patientId)
+            .maybeSingle();
+
+        if (patientResponse != null) {
+          patient = model.User.fromJson(patientResponse);
+        }
+      } catch (e) {
+        logW('Error fetching patient for notification: $e');
+      }
 
       logI('Appointment rejected successfully');
+
+      // Send notification
+      try {
+        if (_notificationRepository != null && patient != null) {
+          await _notificationRepository!.sendAppointmentRejectedNotification(
+            appointment: appointment,
+            patient: patient,
+            reason: reason,
+          );
+        }
+      } catch (e) {
+        logE('Error sending appointment rejected notification', error: e);
+        // Don't throw - notification failure shouldn't break rejection
+      }
     } catch (e) {
       logE('Error rejecting appointment', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -211,7 +289,6 @@ class AppointmentsRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching patient appointments', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -247,7 +324,6 @@ class AppointmentsRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching doctor info', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -317,7 +393,6 @@ class AppointmentsRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching available slots', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -372,11 +447,24 @@ class AppointmentsRepository extends BaseRepository {
 
       final appointment = Appointment.fromJson(response);
       logI('Appointment created successfully: ${appointment.id}');
+
+      // Send notification
+      try {
+        if (_notificationRepository != null) {
+          await _notificationRepository!.sendAppointmentBookedNotification(
+            appointment: appointment,
+            patient: user,
+          );
+        }
+      } catch (e) {
+        logE('Error sending appointment booked notification', error: e);
+        // Don't throw - notification failure shouldn't break appointment creation
+      }
+
       return appointment;
     } catch (e) {
       logE('Error creating appointment', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -440,11 +528,26 @@ class AppointmentsRepository extends BaseRepository {
           .single();
 
       logI('Appointment cancelled successfully: $appointmentId');
-      return Appointment.fromJson(response);
+      final appointment = Appointment.fromJson(response);
+
+      // Send notification
+      try {
+        if (_notificationRepository != null) {
+          await _notificationRepository!.sendAppointmentCancelledNotification(
+            appointment: appointment,
+            cancelledBy: user,
+            reason: cancelReason,
+          );
+        }
+      } catch (e) {
+        logE('Error sending appointment cancelled notification', error: e);
+        // Don't throw - notification failure shouldn't break cancellation
+      }
+
+      return appointment;
     } catch (e) {
       logE('Error cancelling appointment', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 }
