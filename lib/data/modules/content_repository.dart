@@ -77,7 +77,7 @@ class ContentRepository extends BaseRepository {
       // Get doctor ID using Supabase function
       final doctorIdResponse = await _supabase.rpc('get_doctor_id');
       String? doctorId;
-      
+
       if (doctorIdResponse != null) {
         if (doctorIdResponse is String) {
           doctorId = doctorIdResponse;
@@ -87,7 +87,7 @@ class ContentRepository extends BaseRepository {
           doctorId = doctorIdResponse.toString();
         }
       }
-      
+
       if (doctorId == null || doctorId.isEmpty || doctorId == 'null') {
         logW('No doctor ID found');
         return [];
@@ -176,7 +176,7 @@ class ContentRepository extends BaseRepository {
       final folder = contentType == ContentType.video ? 'videos' : 'images';
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final extension = fileName.split('.').last;
-      final storageFileName = '${doctorId}_${timestamp}.$extension';
+      final storageFileName = '${doctorId}_$timestamp.$extension';
       final storagePath = 'content/$folder/$storageFileName';
 
       // Upload to Firebase Storage
@@ -251,7 +251,6 @@ class ContentRepository extends BaseRepository {
     } catch (e) {
       logE('Error uploading content', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -275,7 +274,6 @@ class ContentRepository extends BaseRepository {
     } catch (e) {
       logE('Error deleting content', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -318,7 +316,6 @@ class ContentRepository extends BaseRepository {
     } catch (e) {
       logE('Error updating content', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 }

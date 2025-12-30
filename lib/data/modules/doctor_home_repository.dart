@@ -48,7 +48,6 @@ class DoctorHomeRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching doctor info', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -95,7 +94,6 @@ class DoctorHomeRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching pending requests', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -159,7 +157,6 @@ class DoctorHomeRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching today\'s schedule', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -231,7 +228,6 @@ class DoctorHomeRepository extends BaseRepository {
     } catch (e) {
       logE('Error fetching analytics', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -255,7 +251,6 @@ class DoctorHomeRepository extends BaseRepository {
     } catch (e) {
       logE('Error approving appointment', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 
@@ -286,7 +281,6 @@ class DoctorHomeRepository extends BaseRepository {
     } catch (e) {
       logE('Error declining appointment', error: e);
       handleRepositoryError(e);
-      rethrow;
     }
   }
 }

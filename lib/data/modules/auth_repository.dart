@@ -6,6 +6,7 @@ import '../models/token.dart';
 import '../models/user.dart' as model;
 import '../service/storage_service.dart';
 import '../service/onesignal_service.dart';
+import '../service/firebase_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -130,8 +131,8 @@ class AuthRepository extends BaseRepository {
 
       await _storageService.setUser(user);
       return user.isDoctor;
-    } catch (e) {
-      handleRepositoryError(e);
+    } catch (e, stackTrace) {
+      handleRepositoryError(e, stackTrace);
     }
   }
 
@@ -282,6 +283,19 @@ class AuthRepository extends BaseRepository {
       } catch (e) {
         logW('Error signing out from Supabase: $e');
         // Continue even if Supabase sign out fails
+      }
+
+      // 5. Reset analytics and Crashlytics
+      if (FirebaseAppService.isInitialized) {
+        try {
+          await FirebaseAppService.instance.resetAnalyticsData();
+          await FirebaseAppService.instance.setUserId(null);
+          await FirebaseAppService.instance.setCrashlyticsUserId(null);
+          logD('Reset analytics data');
+        } catch (e) {
+          logW('Error resetting analytics: $e');
+          // Continue even if analytics reset fails
+        }
       }
 
       logI('User signed out successfully');

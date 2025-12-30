@@ -209,7 +209,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     width: 4,
                   ),
                 ),
@@ -333,11 +333,11 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -405,7 +405,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -583,7 +583,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
         border: Border(left: BorderSide(color: AppColors.primary, width: 4)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -605,7 +605,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
                         vertical: AppConstants.spacing1 / 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           AppConstants.radiusCircular,
                         ),
@@ -644,9 +644,11 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
               Container(
                 padding: const EdgeInsets.all(AppConstants.spacing3),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.05),
+                  color: AppColors.primary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -747,7 +749,9 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
         ? Colors.red.shade500
         : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
     final iconBgColor = isCancelled
-        ? (isDark ? Colors.red.shade500.withOpacity(0.1) : Colors.red.shade50)
+        ? (isDark
+              ? Colors.red.shade500.withValues(alpha: 0.1)
+              : Colors.red.shade50)
         : (isDark ? Colors.grey.shade700 : Colors.grey.shade100);
     final statusText = isCancelled
         ? 'Cancelled by patient'
@@ -772,7 +776,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
             border: Border.all(color: Colors.transparent),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -856,52 +860,78 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacing4),
       decoration: BoxDecoration(
-        color: (isDark ? AppColors.surfaceDark : Colors.white).withOpacity(0.8),
+        color: (isDark ? AppColors.surfaceDark : Colors.white).withValues(
+          alpha: 0.8,
+        ),
         border: Border(
           top: BorderSide(
             color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
           ),
         ),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            // TODO: Navigate to chat screen
-          },
-          borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-          child: Container(
-            width: double.infinity,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
+      child: GetBuilder<PatientDetailController>(
+        id: PatientDetailController.chatButtonId,
+        builder: (controller) {
+          final isStartingChat = controller.isStartingChat;
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isStartingChat
+                  ? null
+                  : () {
+                      HapticFeedback.lightImpact();
+                      controller.startChatWithPatient();
+                    },
               borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+              child: Container(
+                width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: isStartingChat
+                      ? AppColors.primary.withOpacity(0.7)
+                      : AppColors.primary,
+                  borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.chat_bubble, color: Colors.white, size: 20),
-                const SizedBox(width: AppConstants.spacing2),
-                Text(
-                  'Chat with ${controller.patientName}',
-                  style: const TextStyle(
-                    fontSize: AppConstants.body1Size,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isStartingChat)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    else
+                      Icon(Icons.chat_bubble, color: Colors.white, size: 20),
+                    const SizedBox(width: AppConstants.spacing2),
+                    Text(
+                      isStartingChat
+                          ? 'Starting chat...'
+                          : 'Chat with ${controller.patientName}',
+                      style: const TextStyle(
+                        fontSize: AppConstants.body1Size,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -949,7 +979,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
                       vertical: AppConstants.spacing2,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(
                         AppConstants.radiusMedium,
                       ),
@@ -1018,7 +1048,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -1049,8 +1079,8 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
                           ),
                           decoration: BoxDecoration(
                             color: plan.isActive
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.grey.withOpacity(0.1),
+                                ? Colors.green.withValues(alpha: 0.1)
+                                : Colors.grey.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(
                               AppConstants.radiusSmall,
                             ),
@@ -1301,12 +1331,12 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
                         vertical: AppConstants.spacing2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           AppConstants.radiusMedium,
                         ),
                         border: Border.all(
-                          color: AppColors.primary.withOpacity(0.3),
+                          color: AppColors.primary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -1350,11 +1380,13 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
                         vertical: AppConstants.spacing2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: Colors.red.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           AppConstants.radiusMedium,
                         ),
-                        border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        border: Border.all(
+                          color: Colors.red.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,

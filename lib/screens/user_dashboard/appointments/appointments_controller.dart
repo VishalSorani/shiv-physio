@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../data/base_class/base_controller.dart';
 import '../../../data/models/appointment.dart';
@@ -7,6 +9,8 @@ import '../../../data/models/user.dart';
 import '../../../data/modules/appointments_repository.dart';
 import '../../../widgets/app_appointment_list_card.dart' as card;
 import '../../../widgets/app_snackbar.dart';
+import '../../user_dashboard/user_dashboard_controller.dart';
+import '../../user_dashboard/book_appointment/book_appointment_screen.dart';
 
 class AppointmentsController extends BaseController {
   static const String contentId = 'appointments_content';
@@ -72,6 +76,8 @@ class AppointmentsController extends BaseController {
   @override
   void onInit() {
     super.onInit();
+    // Track screen view
+    trackScreenView('user_appointments_screen');
     _loadAppointments();
     _loadDoctorInfo();
   }
@@ -173,7 +179,21 @@ class AppointmentsController extends BaseController {
   }
 
   void onBookAppointmentTap() {
-    navigationService.navigateToRoute('/book-appointment');
+    // Check if booking is allowed based on city availability
+    try {
+      final dashboardController = Get.find<UserDashboardController>();
+      final context = Get.context;
+      if (context != null && !dashboardController.canBookAppointment(context)) {
+        return; // Dialog shown by canBookAppointment
+      }
+    } catch (e) {
+      // If UserDashboardController not found, allow navigation (graceful degradation)
+      debugPrint('Error checking city availability: $e');
+    }
+
+    navigationService.navigateToRoute(
+      BookAppointmentScreen.bookAppointmentScreen,
+    );
   }
 
   // Helper methods to convert Appointment to card format

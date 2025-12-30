@@ -246,29 +246,48 @@ class AppointmentsRepository extends BaseRepository {
         return [];
       }
 
-      // Build query
-      dynamic query = _supabase
-          .from('appointments')
-          .select('''
-            *,
-            doctor:doctor_id (
-              id,
-              full_name,
-              avatar_url,
-              email,
-              phone
-            )
-          ''')
-          .eq('patient_id', patientId)
-          .eq('doctor_id', doctorId)
-          .order('start_at', ascending: true);
+      // Build query - with complex select, build conditionally to include all filters in initial chain
+      dynamic query;
 
-      // Apply status filter if provided
       if (statusFilter != null) {
-        query = query.eq('status', statusFilter.toDb());
+        // Include status filter in initial chain
+        query = _supabase
+            .from('appointments')
+            .select('''
+              *,
+              doctor:doctor_id (
+                id,
+                full_name,
+                avatar_url,
+                email,
+                phone
+              )
+            ''')
+            .eq('patient_id', patientId)
+            .eq('doctor_id', doctorId)
+            .eq('status', statusFilter.toDb());
+      } else {
+        // Without status filter
+        query = _supabase
+            .from('appointments')
+            .select('''
+              *,
+              doctor:doctor_id (
+                id,
+                full_name,
+                avatar_url,
+                email,
+                phone
+              )
+            ''')
+            .eq('patient_id', patientId)
+            .eq('doctor_id', doctorId);
       }
 
-      // Apply limit if provided
+      // Apply ordering (after all filters, before limit)
+      query = query.order('start_at', ascending: true);
+
+      // Apply limit if provided (must be last)
       if (limit != null) {
         query = query.limit(limit);
       }

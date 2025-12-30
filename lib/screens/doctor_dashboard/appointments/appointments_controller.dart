@@ -194,6 +194,8 @@ class DoctorAppointmentsController extends BaseController {
   @override
   void onInit() {
     super.onInit();
+    // Track screen view
+    trackScreenView('doctor_appointments_screen');
     loadAppointmentRequests();
   }
 

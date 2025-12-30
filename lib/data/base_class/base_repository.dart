@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:shiv_physio_app/core/exceptions/app_exceptions.dart';
 import 'package:shiv_physio_app/data/service/logger.dart';
+import 'package:shiv_physio_app/data/service/firebase_service.dart';
 
 /// Base repository class that provides logging functionality to all repositories
 abstract class BaseRepository {
@@ -15,8 +18,22 @@ abstract class BaseRepository {
   void logW(String message) => _logger.w('${runtimeType.toString()}: $message');
 
   /// Log an error message (always shown)
-  void logE(String message, {dynamic error, StackTrace? stackTrace}) =>
-      _logger.e('${runtimeType.toString()}: $message', error, stackTrace);
+  void logE(String message, {dynamic error, StackTrace? stackTrace}) {
+    _logger.e('${runtimeType.toString()}: $message', error, stackTrace);
+    // Also record to Crashlytics if Firebase is initialized
+    if (FirebaseAppService.isInitialized && error != null) {
+      unawaited(
+        FirebaseAppService.instance.recordNonFatalError(
+          error,
+          stackTrace ?? StackTrace.current,
+          information: [
+            'repository: ${runtimeType.toString()}',
+            'message: $message',
+          ],
+        ),
+      );
+    }
+  }
 
   /// Simple log method (always shown)
   void log(String message) =>
@@ -38,7 +55,21 @@ abstract class BaseRepository {
   // }
 
   // comman error handle function
-  Never handleRepositoryError(dynamic error) {
+  Never handleRepositoryError(dynamic error, [StackTrace? stackTrace]) {
+    // Record errors to Crashlytics before rethrowing
+    if (FirebaseAppService.isInitialized) {
+      unawaited(
+        FirebaseAppService.instance.recordNonFatalError(
+          error,
+          stackTrace ?? StackTrace.current,
+          information: [
+            'repository: ${runtimeType.toString()}',
+            'error_type: ${error.runtimeType.toString()}',
+          ],
+        ),
+      );
+    }
+
     if (error is AppException) {
       throw error;
     }

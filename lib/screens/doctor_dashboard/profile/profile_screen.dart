@@ -24,23 +24,23 @@ class DoctorProfileScreen extends BaseScreenView<DoctorProfileController> {
       appBar: AppCustomAppBar(
         title: 'Manage Profile',
         centerTitle: true,
-        leading: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Get.back();
-            },
-            borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
-            child: Container(
-              padding: const EdgeInsets.all(AppConstants.spacing2),
-              child: Icon(
-                Icons.arrow_back,
-                color: isDark ? Colors.white : const Color(0xFF111518),
-              ),
-            ),
-          ),
-        ),
+        // leading: Material(
+        //   color: Colors.transparent,
+        //   child: InkWell(
+        //     onTap: () {
+        //       HapticFeedback.lightImpact();
+        //       Get.back();
+        //     },
+        //     borderRadius: BorderRadius.circular(AppConstants.radiusCircular),
+        //     child: Container(
+        //       padding: const EdgeInsets.all(AppConstants.spacing2),
+        //       child: Icon(
+        //         Icons.arrow_back,
+        //         color: isDark ? Colors.white : const Color(0xFF111518),
+        //       ),
+        //     ),
+        //   ),
+        // ),
         action: GetBuilder<DoctorProfileController>(
           id: DoctorProfileController.contentId,
           builder: (controller) => TextButton(

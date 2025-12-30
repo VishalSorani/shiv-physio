@@ -34,71 +34,36 @@ class UserSettingsScreen extends BaseScreenView<UserSettingsController> {
               child: GetBuilder<UserSettingsController>(
                 id: UserSettingsController.settingsId,
                 builder: (controller) => SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        top: AppConstants.spacing4,
-                        bottom: AppConstants.spacing8 + 64, // Space for bottom nav
+                  padding: EdgeInsets.only(
+                    top: AppConstants.spacing4,
+                    bottom: AppConstants.spacing8 + 64, // Space for bottom nav
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Privacy Policy Section
+                      _buildSectionHeader(
+                        context,
+                        'Legal',
+                        isDark,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Notifications Section
-                          _buildSectionHeader(
-                            context,
-                            'Notifications',
-                            isDark,
-                          ),
-                          _buildNotificationSettings(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing6),
-                          // Preferences Section
-                          _buildSectionHeader(
-                            context,
-                            'Preferences',
-                            isDark,
-                          ),
-                          _buildPreferencesSettings(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing6),
-                          // Account Section
-                          _buildSectionHeader(
-                            context,
-                            'Account',
-                            isDark,
-                          ),
-                          _buildAccountSettings(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing6),
-                          // Support Section
-                          _buildSectionHeader(
-                            context,
-                            'Support',
-                            isDark,
-                          ),
-                          _buildSupportSettings(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing6),
-                          // Logout Section
-                          _buildLogoutButton(
-                            context,
-                            controller,
-                            isDark,
-                          ),
-                          const SizedBox(height: AppConstants.spacing4),
-                        ],
+                      _buildPrivacyPolicyButton(
+                        context,
+                        controller,
+                        isDark,
                       ),
-                    )),
+                      const SizedBox(height: AppConstants.spacing6),
+                      // Logout Section
+                      _buildLogoutButton(
+                        context,
+                        controller,
+                        isDark,
+                      ),
+                      const SizedBox(height: AppConstants.spacing4),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -125,61 +90,7 @@ class UserSettingsScreen extends BaseScreenView<UserSettingsController> {
     );
   }
 
-  Widget _buildNotificationSettings(
-    BuildContext context,
-    UserSettingsController controller,
-    bool isDark,
-  ) {
-    final surfaceColor = isDark ? Colors.white.withOpacity(0.05) : Colors.white;
-    final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade100;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacing4),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        children: [
-          _buildSettingItem(
-            context,
-            icon: Icons.notifications_outlined,
-            title: 'Push Notifications',
-            subtitle: 'Receive notifications about appointments and messages',
-            trailing: Switch(
-              value: controller.notificationsEnabled,
-              onChanged: (value) {
-                HapticFeedback.selectionClick();
-                controller.toggleNotifications(value);
-              },
-              activeColor: AppColors.primary,
-            ),
-            isDark: isDark,
-            showDivider: true,
-          ),
-          _buildSettingItem(
-            context,
-            icon: Icons.email_outlined,
-            title: 'Email Notifications',
-            subtitle: 'Receive email updates about your appointments',
-            trailing: Switch(
-              value: controller.emailNotificationsEnabled,
-              onChanged: (value) {
-                HapticFeedback.selectionClick();
-                controller.toggleEmailNotifications(value);
-              },
-              activeColor: AppColors.primary,
-            ),
-            isDark: isDark,
-            showDivider: false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreferencesSettings(
+  Widget _buildPrivacyPolicyButton(
     BuildContext context,
     UserSettingsController controller,
     bool isDark,
@@ -196,127 +107,19 @@ class UserSettingsScreen extends BaseScreenView<UserSettingsController> {
       ),
       child: _buildSettingItem(
         context,
-        icon: Icons.dark_mode_outlined,
-        title: 'Dark Mode',
-        subtitle: 'Switch between light and dark theme',
-        trailing: Switch(
-          value: controller.darkModeEnabled,
-          onChanged: (value) {
-            HapticFeedback.selectionClick();
-            controller.toggleDarkMode(value);
-          },
-          activeColor: AppColors.primary,
+        icon: Icons.privacy_tip_outlined,
+        title: 'Privacy Policy',
+        subtitle: 'View our privacy policy',
+        trailing: Icon(
+          Icons.chevron_right,
+          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
         ),
         isDark: isDark,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          controller.onPrivacyPolicy();
+        },
         showDivider: false,
-      ),
-    );
-  }
-
-  Widget _buildAccountSettings(
-    BuildContext context,
-    UserSettingsController controller,
-    bool isDark,
-  ) {
-    final surfaceColor = isDark ? Colors.white.withOpacity(0.05) : Colors.white;
-    final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade100;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacing4),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        children: [
-          _buildSettingItem(
-            context,
-            icon: Icons.account_circle_outlined,
-            title: 'Account Settings',
-            subtitle: 'Manage your account information',
-            trailing: Icon(
-              Icons.chevron_right,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            isDark: isDark,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              controller.onAccountSettings();
-            },
-            showDivider: true,
-          ),
-          _buildSettingItem(
-            context,
-            icon: Icons.privacy_tip_outlined,
-            title: 'Privacy',
-            subtitle: 'Manage your privacy settings',
-            trailing: Icon(
-              Icons.chevron_right,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            isDark: isDark,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              controller.onPrivacySettings();
-            },
-            showDivider: false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSupportSettings(
-    BuildContext context,
-    UserSettingsController controller,
-    bool isDark,
-  ) {
-    final surfaceColor = isDark ? Colors.white.withOpacity(0.05) : Colors.white;
-    final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade100;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacing4),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        children: [
-          _buildSettingItem(
-            context,
-            icon: Icons.help_outline,
-            title: 'Help & Support',
-            subtitle: 'Get help with using the app',
-            trailing: Icon(
-              Icons.chevron_right,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            isDark: isDark,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              controller.onHelpSupport();
-            },
-            showDivider: true,
-          ),
-          _buildSettingItem(
-            context,
-            icon: Icons.info_outline,
-            title: 'About',
-            subtitle: 'App version and information',
-            trailing: Icon(
-              Icons.chevron_right,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            isDark: isDark,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              controller.onAbout();
-            },
-            showDivider: false,
-          ),
-        ],
       ),
     );
   }

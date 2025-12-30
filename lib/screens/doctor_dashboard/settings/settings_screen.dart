@@ -38,21 +38,9 @@ class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Notifications Section
-                      _buildSectionHeader(context, 'Notifications', isDark),
-                      _buildNotificationSettings(context, controller, isDark),
-                      const SizedBox(height: AppConstants.spacing6),
-                      // Preferences Section
-                      _buildSectionHeader(context, 'Preferences', isDark),
-                      _buildPreferencesSettings(context, controller, isDark),
-                      const SizedBox(height: AppConstants.spacing6),
-                      // Account Section
-                      _buildSectionHeader(context, 'Account', isDark),
-                      _buildAccountSettings(context, controller, isDark),
-                      const SizedBox(height: AppConstants.spacing6),
-                      // Support Section
-                      _buildSectionHeader(context, 'Support', isDark),
-                      _buildSupportSettings(context, controller, isDark),
+                      // Privacy Policy Section
+                      _buildSectionHeader(context, 'Legal', isDark),
+                      _buildPrivacyPolicyButton(context, controller, isDark),
                       const SizedBox(height: AppConstants.spacing6),
                       // Logout Section
                       _buildLogoutButton(context, controller, isDark),
@@ -86,61 +74,7 @@ class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
     );
   }
 
-  Widget _buildNotificationSettings(
-    BuildContext context,
-    DoctorSettingsController controller,
-    bool isDark,
-  ) {
-    final surfaceColor = isDark ? Colors.white.withOpacity(0.05) : Colors.white;
-    final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade100;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacing4),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        children: [
-          _buildSettingItem(
-            context,
-            icon: Icons.notifications_outlined,
-            title: 'Push Notifications',
-            subtitle: 'Receive notifications about appointments and messages',
-            trailing: Switch(
-              value: controller.notificationsEnabled,
-              onChanged: (value) {
-                HapticFeedback.selectionClick();
-                controller.toggleNotifications(value);
-              },
-              activeColor: AppColors.primary,
-            ),
-            isDark: isDark,
-            showDivider: true,
-          ),
-          _buildSettingItem(
-            context,
-            icon: Icons.email_outlined,
-            title: 'Email Notifications',
-            subtitle: 'Receive email updates about your practice',
-            trailing: Switch(
-              value: controller.emailNotificationsEnabled,
-              onChanged: (value) {
-                HapticFeedback.selectionClick();
-                controller.toggleEmailNotifications(value);
-              },
-              activeColor: AppColors.primary,
-            ),
-            isDark: isDark,
-            showDivider: false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreferencesSettings(
+  Widget _buildPrivacyPolicyButton(
     BuildContext context,
     DoctorSettingsController controller,
     bool isDark,
@@ -157,127 +91,19 @@ class DoctorSettingsScreen extends BaseScreenView<DoctorSettingsController> {
       ),
       child: _buildSettingItem(
         context,
-        icon: Icons.dark_mode_outlined,
-        title: 'Dark Mode',
-        subtitle: 'Switch between light and dark theme',
-        trailing: Switch(
-          value: controller.darkModeEnabled,
-          onChanged: (value) {
-            HapticFeedback.selectionClick();
-            controller.toggleDarkMode(value);
-          },
-          activeColor: AppColors.primary,
+        icon: Icons.privacy_tip_outlined,
+        title: 'Privacy Policy',
+        subtitle: 'View our privacy policy',
+        trailing: Icon(
+          Icons.chevron_right,
+          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
         ),
         isDark: isDark,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          controller.onPrivacyPolicy();
+        },
         showDivider: false,
-      ),
-    );
-  }
-
-  Widget _buildAccountSettings(
-    BuildContext context,
-    DoctorSettingsController controller,
-    bool isDark,
-  ) {
-    final surfaceColor = isDark ? Colors.white.withOpacity(0.05) : Colors.white;
-    final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade100;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacing4),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        children: [
-          _buildSettingItem(
-            context,
-            icon: Icons.account_circle_outlined,
-            title: 'Account Settings',
-            subtitle: 'Manage your account information',
-            trailing: Icon(
-              Icons.chevron_right,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            isDark: isDark,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              controller.onAccountSettings();
-            },
-            showDivider: true,
-          ),
-          _buildSettingItem(
-            context,
-            icon: Icons.privacy_tip_outlined,
-            title: 'Privacy',
-            subtitle: 'Manage your privacy settings',
-            trailing: Icon(
-              Icons.chevron_right,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            isDark: isDark,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              controller.onPrivacySettings();
-            },
-            showDivider: false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSupportSettings(
-    BuildContext context,
-    DoctorSettingsController controller,
-    bool isDark,
-  ) {
-    final surfaceColor = isDark ? Colors.white.withOpacity(0.05) : Colors.white;
-    final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade100;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacing4),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        children: [
-          _buildSettingItem(
-            context,
-            icon: Icons.help_outline,
-            title: 'Help & Support',
-            subtitle: 'Get help with using the app',
-            trailing: Icon(
-              Icons.chevron_right,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            isDark: isDark,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              controller.onHelpSupport();
-            },
-            showDivider: true,
-          ),
-          _buildSettingItem(
-            context,
-            icon: Icons.info_outline,
-            title: 'About',
-            subtitle: 'App version and information',
-            trailing: Icon(
-              Icons.chevron_right,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-            ),
-            isDark: isDark,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              controller.onAbout();
-            },
-            showDivider: false,
-          ),
-        ],
       ),
     );
   }

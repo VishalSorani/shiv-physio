@@ -45,5 +45,32 @@ class AppPages {
       page: () => const AppointmentConfirmationScreen(),
       binding: AppointmentConfirmationBinding(),
     ),
+    GetPage(
+      name: ForceUpdateScreen.forceUpdateScreen,
+      page: () => const ForceUpdateScreen(),
+      binding: ForceUpdateBinding(),
+    ),
+    // User Chat Routes
+    GetPage(
+      name: UserChatListScreen.chatListScreen,
+      page: () => const UserChatListScreen(),
+      binding: UserChatListBinding(),
+    ),
+    GetPage(
+      name: UserChatConversationScreen.chatConversationScreen,
+      page: () => const UserChatConversationScreen(),
+      binding: UserChatConversationBinding(),
+    ),
+    // Doctor Chat Routes
+    GetPage(
+      name: DoctorChatListScreen.chatListScreen,
+      page: () => const DoctorChatListScreen(),
+      binding: DoctorChatListBinding(),
+    ),
+    GetPage(
+      name: DoctorChatConversationScreen.chatConversationScreen,
+      page: () => const DoctorChatConversationScreen(),
+      binding: DoctorChatConversationBinding(),
+    ),
   ];
 }

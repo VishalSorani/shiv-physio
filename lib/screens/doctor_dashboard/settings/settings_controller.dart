@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../data/base_class/base_controller.dart';
 import '../../../data/modules/auth_repository.dart';
 import '../../../data/service/navigation_service/navigation_import.dart';
+import '../../../data/service/remote_config_service.dart';
 import '../../../screens/login/login_screen.dart';
 import '../../../widgets/app_snackbar.dart';
 
@@ -11,42 +14,21 @@ class DoctorSettingsController extends BaseController {
 
   final AuthRepository _authRepository;
   final NavigationService _navigationService;
+  final RemoteConfigService _remoteConfigService;
 
   DoctorSettingsController(
     this._authRepository,
     this._navigationService,
+    this._remoteConfigService,
   );
 
-  // Settings state
-  bool _notificationsEnabled = true;
-  bool get notificationsEnabled => _notificationsEnabled;
-
-  bool _emailNotificationsEnabled = true;
-  bool get emailNotificationsEnabled => _emailNotificationsEnabled;
-
-  bool _darkModeEnabled = false;
-  bool get darkModeEnabled => _darkModeEnabled;
-
-  /// Toggle notifications
-  void toggleNotifications(bool value) {
-    _notificationsEnabled = value;
-    update([settingsId]);
-    // TODO: Save to storage/preferences
+  @override
+  void onInit() {
+    super.onInit();
+    // Track screen view
+    trackScreenView('doctor_settings_screen');
   }
 
-  /// Toggle email notifications
-  void toggleEmailNotifications(bool value) {
-    _emailNotificationsEnabled = value;
-    update([settingsId]);
-    // TODO: Save to storage/preferences
-  }
-
-  /// Toggle dark mode
-  void toggleDarkMode(bool value) {
-    _darkModeEnabled = value;
-    update([settingsId]);
-    // TODO: Save to storage/preferences and apply theme
-  }
 
   /// Handle logout with confirmation
   Future<void> onLogout() async {
@@ -74,9 +56,19 @@ class DoctorSettingsController extends BaseController {
     );
 
     if (shouldLogout == true) {
+      // Track logout event
+      trackAnalyticsEvent('logout_attempt', parameters: {
+        'user_type': 'doctor',
+      });
+
       await handleAsyncOperation(() async {
         // Sign out from Firebase and clear storage
         await _authRepository.signOut();
+
+        // Track successful logout
+        trackAnalyticsEvent('logout_success', parameters: {
+          'user_type': 'doctor',
+        });
 
         // Navigate to login screen
         _navigationService.offAllToRoute(
@@ -87,36 +79,43 @@ class DoctorSettingsController extends BaseController {
     }
   }
 
-  /// Handle account settings
-  void onAccountSettings() {
-    AppSnackBar.info(
-      title: 'Coming Soon',
-      message: 'Account settings feature will be available soon',
-    );
-  }
+  /// Handle privacy policy - open URL from Remote Config
+  Future<void> onPrivacyPolicy() async {
+    try {
+      final privacyPolicyUrl = _remoteConfigService.getPrivacyPolicyUrl();
+      
+      if (privacyPolicyUrl.isEmpty) {
+        AppSnackBar.error(
+          title: 'Error',
+          message: 'Privacy policy URL is not configured',
+        );
+        return;
+      }
 
-  /// Handle privacy settings
-  void onPrivacySettings() {
-    AppSnackBar.info(
-      title: 'Coming Soon',
-      message: 'Privacy settings feature will be available soon',
-    );
-  }
-
-  /// Handle help & support
-  void onHelpSupport() {
-    AppSnackBar.info(
-      title: 'Coming Soon',
-      message: 'Help & support feature will be available soon',
-    );
-  }
-
-  /// Handle about
-  void onAbout() {
-    AppSnackBar.info(
-      title: 'Coming Soon',
-      message: 'About feature will be available soon',
-    );
+      final uri = Uri.parse(privacyPolicyUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        
+        // Track analytics
+        trackAnalyticsEvent('privacy_policy_opened', parameters: {
+          'user_type': 'doctor',
+        });
+      } else {
+        AppSnackBar.error(
+          title: 'Error',
+          message: 'Could not open privacy policy URL',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error opening privacy policy: $e');
+      AppSnackBar.error(
+        title: 'Error',
+        message: 'Failed to open privacy policy',
+      );
+    }
   }
 
   @override

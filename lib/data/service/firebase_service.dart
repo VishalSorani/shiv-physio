@@ -99,6 +99,10 @@ class FirebaseAppService {
     required String screenName,
     String screenClass = 'Screen',
   }) async {
+    debugPrint('===========Log Screen View======');
+    debugPrint('- screenName: $screenName');
+    debugPrint('- screenClass: $screenClass');
+    debugPrint('================================');
     await _analytics.logScreenView(
       screenName: screenName,
       screenClass: screenClass,
@@ -187,7 +191,11 @@ class FirebaseAppService {
     final Map<String, Object> sanitised = {};
     parameters.forEach((key, value) {
       if (value == null) return;
-      if (value is num || value is String || value is bool) {
+      // Firebase Analytics only accepts String or num
+      // Convert bool to String
+      if (value is bool) {
+        sanitised[key] = value.toString();
+      } else if (value is num || value is String) {
         sanitised[key] = value;
       } else {
         sanitised[key] = value.toString();

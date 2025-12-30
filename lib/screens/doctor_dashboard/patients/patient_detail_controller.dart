@@ -1,9 +1,11 @@
 import '../../../data/base_class/base_controller.dart';
+import '../../../data/modules/chat_repository.dart';
 import '../../../data/modules/patients_repository.dart';
 import '../../../data/models/appointment.dart';
 import '../../../data/models/treatment_plan.dart';
 import '../../../data/models/user.dart' as app_models;
 import '../../../data/models/enums.dart';
+import '../../../screens/doctor_dashboard/chat/chat_conversation_screen.dart';
 
 class PatientDetailController extends BaseController {
   static const String contentId = 'patient_detail_content';
@@ -13,13 +15,23 @@ class PatientDetailController extends BaseController {
   static const String treatmentPlansId = 'treatment_plans';
 
   final PatientsRepository _patientsRepository;
+  final ChatRepository _chatRepository;
   final String patientId;
 
-  PatientDetailController(this._patientsRepository, this.patientId);
+  PatientDetailController(
+    this._patientsRepository,
+    this._chatRepository,
+    this.patientId,
+  );
 
   // Loading state
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  // Chat button loading state
+  static const String chatButtonId = 'chat_button';
+  bool _isStartingChat = false;
+  bool get isStartingChat => _isStartingChat;
 
   // Patient data
   app_models.User? _patient;
@@ -218,6 +230,57 @@ class PatientDetailController extends BaseController {
   void onInit() {
     super.onInit();
     loadPatientData();
+  }
+
+  /// Start chat conversation with patient
+  Future<void> startChatWithPatient() async {
+    if (patientId.isEmpty || _isStartingChat) {
+      return;
+    }
+
+    _isStartingChat = true;
+    update([chatButtonId]);
+
+    try {
+      await handleAsyncOperation(() async {
+        // Get or create conversation with patient
+        final conversation = await _chatRepository
+            .getOrCreatePatientConversation(patientId);
+
+        // Get BaseConversationModel with rich user data
+        final baseConversation = await _chatRepository.getConversation(
+          conversation.id,
+        );
+
+        // Navigate to chat conversation screen
+        navigationService.navigateToRoute(
+          DoctorChatConversationScreen.chatConversationScreen,
+          arguments: {
+            'conversationId': conversation.id,
+            'conversation': baseConversation,
+          },
+        );
+
+        // Track analytics
+        trackAnalyticsEvent(
+          'chat_started_from_patient_detail',
+          parameters: {
+            'patient_id': patientId,
+            'conversation_id': conversation.id,
+          },
+        );
+      });
+    } catch (e) {
+      // Error is already logged in repository
+      // Reset loading state on error
+      _isStartingChat = false;
+      update([chatButtonId]);
+      rethrow;
+    } finally {
+      // Reset loading state after navigation
+      _isStartingChat = false;
+      update([chatButtonId]);
+    }
   }
 
   @override

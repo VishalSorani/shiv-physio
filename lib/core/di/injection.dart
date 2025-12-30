@@ -22,6 +22,9 @@ import 'package:shiv_physio_app/data/modules/appointments_repository.dart';
 import 'package:shiv_physio_app/data/modules/patients_repository.dart';
 import 'package:shiv_physio_app/data/modules/content_repository.dart';
 import 'package:shiv_physio_app/data/modules/notification_repository.dart';
+import 'package:shiv_physio_app/data/modules/chat_repository.dart';
+import 'package:shiv_physio_app/data/chat/chat_provider.dart';
+import 'package:shiv_physio_app/data/chat/chat_clients/firebase_chat_client.dart';
 import 'package:dio/dio.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
@@ -156,6 +159,21 @@ Future<void> init() async {
     () => ContentRepository(
       supabase: Get.find<SupabaseClient>(),
       storageService: Get.find<StorageService>(),
+    ),
+    fenix: true,
+  );
+
+  // Chat dependencies
+  Get.lazyPut<ChatConversationClient>(
+    () => FirebaseChatClient(),
+    fenix: true,
+  );
+
+  Get.lazyPut<ChatRepository>(
+    () => ChatRepository(
+      chatClient: Get.find<ChatConversationClient>(),
+      storageService: Get.find<StorageService>(),
+      supabase: Get.find<SupabaseClient>(),
     ),
     fenix: true,
   );

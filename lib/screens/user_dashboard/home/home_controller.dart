@@ -140,6 +140,8 @@ class HomeController extends BaseController {
   @override
   void onInit() {
     super.onInit();
+    // Track screen view
+    trackScreenView('user_home_screen');
     loadData();
     loadUnreadNotificationCount();
   }
@@ -239,6 +241,18 @@ class HomeController extends BaseController {
   }
 
   void onBookTap() {
+    // Check if booking is allowed based on city availability
+    try {
+      final dashboardController = Get.find<UserDashboardController>();
+      final context = Get.context;
+      if (context != null && !dashboardController.canBookAppointment(context)) {
+        return; // Dialog shown by canBookAppointment
+      }
+    } catch (e) {
+      // If UserDashboardController not found, allow navigation (graceful degradation)
+      debugPrint('Error checking city availability: $e');
+    }
+
     navigationService.navigateToRoute(
       BookAppointmentScreen.bookAppointmentScreen,
     );

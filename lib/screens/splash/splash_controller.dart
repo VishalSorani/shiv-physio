@@ -4,14 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
+
 import '../../core/constants/app_constants.dart';
 import '../../data/base_class/base_controller.dart';
 import '../../data/modules/auth_repository.dart';
 import '../../data/service/storage_service.dart';
+import '../../data/service/remote_config_service.dart';
 import '../doctor_dashboard/doctor_dashboard_screen.dart';
 import '../login/login_screen.dart';
 import '../user_dashboard/user_dashboard_screen.dart';
 import '../user_dashboard/profile_setup/profile_setup_screen.dart';
+import '../force_update/force_update_screen.dart';
 
 class SplashController extends BaseController with GetTickerProviderStateMixin {
   // GetBuilder IDs
@@ -48,6 +52,8 @@ class SplashController extends BaseController with GetTickerProviderStateMixin {
   @override
   void onInit() {
     super.onInit();
+    // Track screen view
+    trackScreenView('splash_screen');
 
     _entranceController = AnimationController(
       vsync: this,
@@ -131,6 +137,33 @@ class SplashController extends BaseController with GetTickerProviderStateMixin {
   void _checkAuthAndNavigate() {
     _navTimer?.cancel();
     _navTimer = Timer(const Duration(seconds: 3), () async {
+      // First check for force update
+      try {
+        final remoteConfigService = RemoteConfigService.instance;
+        if (RemoteConfigService.isInitialized) {
+          final isForceUpdateRequired =
+              await remoteConfigService.isForceUpdateRequired();
+
+          if (isForceUpdateRequired) {
+            // Track analytics event
+            trackAnalyticsEvent('force_update_required', parameters: {
+              'current_version': (await package_info_plus.PackageInfo.fromPlatform()).version,
+              'required_version': remoteConfigService.getRequiredMinimumVersion(),
+            });
+
+            navigationService.offAllToRoute(
+              ForceUpdateScreen.forceUpdateScreen,
+              requireNetwork: false,
+            );
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('Error checking force update: $e');
+        // Continue with normal flow if force update check fails
+      }
+
+      // Normal navigation flow
       final user = _storageService.getUser();
       if (user != null) {
         // User is logged in, navigate to appropriate dashboard

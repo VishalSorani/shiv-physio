@@ -397,6 +397,8 @@ class DoctorHomeController extends BaseController {
   @override
   void onInit() {
     super.onInit();
+    // Track screen view
+    trackScreenView('doctor_home_screen');
     loadHomeData();
   }
 

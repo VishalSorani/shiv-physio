@@ -6,11 +6,14 @@ import 'package:shiv_physio_app/core/constants/supabase_config.dart';
 import 'package:shiv_physio_app/data/service/firebase_service.dart';
 import 'package:shiv_physio_app/data/service/theme_service.dart';
 import 'package:shiv_physio_app/data/service/onesignal_service.dart';
+import 'package:shiv_physio_app/data/service/remote_config_service.dart';
 import 'package:shiv_physio_app/routes/route_imports.dart';
 import 'package:shiv_physio_app/screens/user_dashboard/home/home_controller.dart';
 import 'package:shiv_physio_app/screens/user_dashboard/appointments/appointments_controller.dart';
-import 'package:shiv_physio_app/screens/doctor_dashboard/home/home_controller.dart' as doctor_home;
-import 'package:shiv_physio_app/screens/doctor_dashboard/appointments/appointments_controller.dart' as doctor_appointments;
+import 'package:shiv_physio_app/screens/doctor_dashboard/home/home_controller.dart'
+    as doctor_home;
+import 'package:shiv_physio_app/screens/doctor_dashboard/appointments/appointments_controller.dart'
+    as doctor_appointments;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Handle foreground notification - refresh screens
@@ -43,7 +46,8 @@ void _handleForegroundNotification(dynamic notification) {
 
     // Refresh doctor appointments screen if controller exists
     try {
-      final doctorAppointmentsController = Get.find<doctor_appointments.DoctorAppointmentsController>();
+      final doctorAppointmentsController =
+          Get.find<doctor_appointments.DoctorAppointmentsController>();
       doctorAppointmentsController.refreshAppointmentRequests();
     } catch (e) {
       // Controller not found, ignore
@@ -70,6 +74,14 @@ void _handleNotificationOpened(dynamic result) {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseAppService.initialize();
+
+  // Initialize Remote Config for force update checking
+  try {
+    await RemoteConfigService.instance.initialize();
+  } catch (e) {
+    debugPrint('Remote Config initialization failed: $e');
+    // Continue without Remote Config - app should still work
+  }
 
   // Supabase must be initialized before repositories/controllers use it.
   if (SupabaseConfig.url.isEmpty || SupabaseConfig.anonKey.isEmpty) {

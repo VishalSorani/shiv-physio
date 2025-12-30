@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/base_class/base_controller.dart';
 import '../../data/modules/auth_repository.dart';
+import '../../data/service/storage_service.dart';
 import '../doctor_dashboard/doctor_dashboard_screen.dart';
 import '../user_dashboard/user_dashboard_screen.dart';
 import '../user_dashboard/profile_setup/profile_setup_screen.dart';
@@ -16,8 +17,9 @@ class LoginController extends BaseController with GetTickerProviderStateMixin {
   static const String footerId = 'login_footer';
 
   final AuthRepository _authRepository;
+  final StorageService _storageService;
 
-  LoginController(this._authRepository);
+  LoginController(this._authRepository, this._storageService);
 
   // Animations
   late final AnimationController _entranceController;
@@ -42,6 +44,8 @@ class LoginController extends BaseController with GetTickerProviderStateMixin {
   @override
   void onInit() {
     super.onInit();
+    // Track screen view
+    trackScreenView('login_screen');
 
     _entranceController = AnimationController(
       vsync: this,
@@ -148,6 +152,11 @@ class LoginController extends BaseController with GetTickerProviderStateMixin {
     if (_isSigningIn) return;
     await _safeHaptic(() => HapticFeedback.selectionClick());
 
+    // Track login attempt
+    trackAnalyticsEvent('login_attempt', parameters: {
+      'method': 'google',
+    });
+
     _isSigningIn = true;
     update([buttonId]);
 
@@ -160,6 +169,29 @@ class LoginController extends BaseController with GetTickerProviderStateMixin {
       );
 
       await _safeHaptic(() => HapticFeedback.lightImpact());
+
+      // Get user from storage and set analytics
+      final user = _storageService.getUser();
+      if (user != null) {
+        await setUserAnalytics(
+          userId: user.id,
+          userType: isDoctor ? 'doctor' : 'patient',
+          email: user.email,
+          hasPhone: user.phone != null && user.phone!.isNotEmpty,
+        );
+      } else {
+        // Fallback: set basic analytics if user not found
+        await setAnalyticsUserProperties({
+          'user_type': isDoctor ? 'doctor' : 'patient',
+        });
+        await setCrashlyticsCustomKey('user_type', isDoctor ? 'doctor' : 'patient');
+      }
+
+      // Track successful login
+      trackAnalyticsEvent('login_success', parameters: {
+        'method': 'google',
+        'user_type': isDoctor ? 'doctor' : 'patient',
+      });
 
       // Check if user is a doctor or patient
       if (isDoctor) {
@@ -183,6 +215,13 @@ class LoginController extends BaseController with GetTickerProviderStateMixin {
           );
         }
       }
+    } catch (e) {
+      // Track login failure
+      trackAnalyticsEvent('login_failure', parameters: {
+        'method': 'google',
+        'error': e.toString(),
+      });
+      rethrow;
     } finally {
       _isSigningIn = false;
       update([buttonId]);

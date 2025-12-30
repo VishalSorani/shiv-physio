@@ -198,6 +198,18 @@ abstract class BaseController extends GetxController
       _resolveServerMaintenanceMode();
       return result;
     } on NetworkException catch (e) {
+      // Record network errors to Crashlytics
+      unawaited(
+        recordNonFatalError(
+          e,
+          StackTrace.current,
+          information: [
+            'operation_type: async_operation',
+            'error_code: ${e.code ?? 'unknown'}',
+            'error_message: ${e.message}',
+          ],
+        ),
+      );
       final bool handled =
           showMaintenanceDialog && _shouldShowServerMaintenanceDialog(e);
       if (handled) {
@@ -206,7 +218,7 @@ abstract class BaseController extends GetxController
         AppSnackBar.error(title: 'Error', message: e.message);
       }
       throw e.message;
-    } catch (e) {
+    } catch (e, stackTrace) {
       final NetworkException? networkError = _extractNetworkException(e);
       final bool handled =
           showMaintenanceDialog &&
@@ -222,6 +234,19 @@ abstract class BaseController extends GetxController
       } else {
         errorMessage = e.toString();
       }
+
+      // Record all errors to Crashlytics
+      unawaited(
+        recordNonFatalError(
+          e,
+          stackTrace,
+          information: [
+            'operation_type: async_operation',
+            'error_message: $errorMessage',
+            'is_network_error: ${networkError != null}',
+          ],
+        ),
+      );
 
       if (handled) {
         _showServerMaintenanceDialog(onMaintenanceRetry);
@@ -249,11 +274,27 @@ abstract class BaseController extends GetxController
       _resolveServerMaintenanceMode();
       return result;
     } on NetworkException catch (e) {
-      // Track API errors
-      // trackAmplitudeEvent(
-      //   'API Error',
-      //   parameters: {'status_code': e.code.toString(), 'message': e.message},
-      // );
+      // Track API errors to Analytics
+      trackAnalyticsEvent(
+        'api_error',
+        parameters: {
+          'status_code': e.code ?? 'unknown',
+          'message': e.message,
+          'operation_type': 'async_operation_error_handling',
+        },
+      );
+      // Record network errors to Crashlytics
+      unawaited(
+        recordNonFatalError(
+          e,
+          StackTrace.current,
+          information: [
+            'operation_type: async_operation_error_handling',
+            'error_code: ${e.code ?? 'unknown'}',
+            'error_message: ${e.message}',
+          ],
+        ),
+      );
       final bool handled =
           showMaintenanceDialog && _shouldShowServerMaintenanceDialog(e);
       if (handled) {
@@ -262,18 +303,19 @@ abstract class BaseController extends GetxController
         AppSnackBar.error(title: 'Error', message: e.message);
       }
       throw e.message;
-    } catch (e) {
+    } catch (e, stackTrace) {
       final NetworkException? networkError = _extractNetworkException(e);
       // Track API errors for network exceptions
-      // if (networkError != null) {
-      //   trackAmplitudeEvent(
-      //     'API Error',
-      //     parameters: {
-      //       'status_code': networkError.code.toString(),
-      //       'message': networkError.message,
-      //     },
-      //   );
-      // }
+      if (networkError != null) {
+        trackAnalyticsEvent(
+          'api_error',
+          parameters: {
+            'status_code': networkError.code ?? 'unknown',
+            'message': networkError.message,
+            'operation_type': 'async_operation_error_handling',
+          },
+        );
+      }
       final bool handled =
           showMaintenanceDialog &&
           networkError != null &&
@@ -287,6 +329,19 @@ abstract class BaseController extends GetxController
       } else {
         errorMessage = e.toString();
       }
+
+      // Record all errors to Crashlytics
+      unawaited(
+        recordNonFatalError(
+          e,
+          stackTrace,
+          information: [
+            'operation_type: async_operation_error_handling',
+            'error_message: $errorMessage',
+            'is_network_error: ${networkError != null}',
+          ],
+        ),
+      );
 
       if (handled) {
         _showServerMaintenanceDialog(onMaintenanceRetry);
@@ -378,6 +433,87 @@ abstract class BaseController extends GetxController
     );
   }
 
+  /// Records non-fatal error to Crashlytics.
+  @protected
+  Future<void> recordNonFatalError(
+    dynamic exception,
+    StackTrace? stackTrace, {
+    Iterable<Object>? information,
+  }) async {
+    if (!FirebaseAppService.isInitialized) {
+      return;
+    }
+    try {
+      await FirebaseAppService.instance.recordNonFatalError(
+        exception,
+        stackTrace,
+        information: information,
+      );
+    } catch (e) {
+      debugPrint('Failed to record non-fatal error to Crashlytics: $e');
+    }
+  }
+
+  /// Records fatal error to Crashlytics.
+  @protected
+  Future<void> recordFatalError(
+    dynamic exception,
+    StackTrace? stackTrace, {
+    Iterable<Object>? information,
+  }) async {
+    if (!FirebaseAppService.isInitialized) {
+      return;
+    }
+    try {
+      await FirebaseAppService.instance.recordFatalError(
+        exception,
+        stackTrace,
+        information: information,
+      );
+    } catch (e) {
+      debugPrint('Failed to record fatal error to Crashlytics: $e');
+    }
+  }
+
+  /// Sets Crashlytics user identifier.
+  @protected
+  Future<void> setCrashlyticsUserId(String? userId) async {
+    if (!FirebaseAppService.isInitialized) {
+      return;
+    }
+    try {
+      await FirebaseAppService.instance.setCrashlyticsUserId(userId);
+    } catch (e) {
+      debugPrint('Failed to set Crashlytics user ID: $e');
+    }
+  }
+
+  /// Sets a custom key in Crashlytics.
+  @protected
+  Future<void> setCrashlyticsCustomKey(String key, dynamic value) async {
+    if (!FirebaseAppService.isInitialized) {
+      return;
+    }
+    try {
+      await FirebaseAppService.instance.setCrashlyticsCustomKey(key, value);
+    } catch (e) {
+      debugPrint('Failed to set Crashlytics custom key: $e');
+    }
+  }
+
+  /// Logs a message to Crashlytics.
+  @protected
+  Future<void> logCrashlyticsMessage(String message) async {
+    if (!FirebaseAppService.isInitialized) {
+      return;
+    }
+    try {
+      await FirebaseAppService.instance.logCrashlyticsMessage(message);
+    } catch (e) {
+      debugPrint('Failed to log message to Crashlytics: $e');
+    }
+  }
+
   /// Sets the analytics user id across providers.
   @protected
   Future<void> setAnalyticsUserId(String? userId) async {
@@ -411,6 +547,35 @@ abstract class BaseController extends GetxController
     //   futures.add(AmplitudeService.instance.setUserProperties(properties));
     // }
     await Future.wait(futures);
+  }
+
+  /// Sets analytics user ID and properties from user model.
+  /// This is a convenience method to set all analytics properties at once.
+  @protected
+  Future<void> setUserAnalytics({
+    required String userId,
+    String? userType,
+    String? email,
+    bool? hasPhone,
+    Map<String, Object?>? additionalProperties,
+  }) async {
+    await setAnalyticsUserId(userId);
+    await setCrashlyticsUserId(userId);
+
+    final properties = <String, Object?>{
+      if (userType != null) 'user_type': userType,
+      if (email != null) 'email': email,
+      if (hasPhone != null) 'has_phone': hasPhone,
+      if (additionalProperties != null) ...additionalProperties,
+    };
+
+    if (properties.isNotEmpty) {
+      await setAnalyticsUserProperties(properties);
+    }
+
+    if (userType != null) {
+      await setCrashlyticsCustomKey('user_type', userType);
+    }
   }
 
   bool _shouldShowServerMaintenanceDialog(NetworkException error) {

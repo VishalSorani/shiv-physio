@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/base_class/base_controller.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
-import '../../widgets/app_snackbar.dart';
 
 class DoctorDashboardController extends BaseController {
   static const String contentId = 'doctor_dashboard_content';
@@ -54,15 +53,7 @@ class DoctorDashboardController extends BaseController {
   void onBottomNavTap(int index) {
     if (_currentTabIndex == index) return;
 
-    // Allow Home, Appointments, Profile, and Settings tabs; Chat shows "Coming soon"
-    if (index != homeTabIndex &&
-        index != appointmentsTabIndex &&
-        index != profileTabIndex &&
-        index != settingsTabIndex) {
-      AppSnackBar.comingSoon();
-      return;
-    }
-
+    // Allow all tabs including Chat
     _currentTabIndex = index;
     update([bottomNavId, contentId]);
   }
