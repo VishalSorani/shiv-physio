@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../data/base_class/base_controller.dart';
 import '../../data/modules/auth_repository.dart';
+import '../../data/service/remote_config_service.dart';
 import '../../data/service/storage_service.dart';
+import '../../widgets/app_snackbar.dart';
 import '../doctor_dashboard/doctor_dashboard_screen.dart';
 import '../user_dashboard/user_dashboard_screen.dart';
 import '../user_dashboard/profile_setup/profile_setup_screen.dart';
@@ -18,8 +22,13 @@ class LoginController extends BaseController with GetTickerProviderStateMixin {
 
   final AuthRepository _authRepository;
   final StorageService _storageService;
+  final RemoteConfigService _remoteConfigService;
 
-  LoginController(this._authRepository, this._storageService);
+  LoginController(
+    this._authRepository,
+    this._storageService,
+    this._remoteConfigService,
+  );
 
   // Animations
   late final AnimationController _entranceController;
@@ -230,12 +239,80 @@ class LoginController extends BaseController with GetTickerProviderStateMixin {
 
   Future<void> onTermsTap() async {
     await _safeHaptic(() => HapticFeedback.selectionClick());
-    // TODO: open Terms URL
+    try {
+      final termsUrl = _remoteConfigService.getTermsOfServiceUrl();
+      
+      if (termsUrl.isEmpty) {
+        AppSnackBar.error(
+          title: 'Error',
+          message: 'Terms of Service URL is not configured',
+        );
+        return;
+      }
+
+      final uri = Uri.parse(termsUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        
+        // Track analytics
+        trackAnalyticsEvent('terms_of_service_opened', parameters: {
+          'source': 'login_screen',
+        });
+      } else {
+        AppSnackBar.error(
+          title: 'Error',
+          message: 'Could not open Terms of Service URL',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error opening Terms of Service: $e');
+      AppSnackBar.error(
+        title: 'Error',
+        message: 'Failed to open Terms of Service',
+      );
+    }
   }
 
   Future<void> onPrivacyTap() async {
     await _safeHaptic(() => HapticFeedback.selectionClick());
-    // TODO: open Privacy URL
+    try {
+      final privacyUrl = _remoteConfigService.getPrivacyPolicyUrl();
+      
+      if (privacyUrl.isEmpty) {
+        AppSnackBar.error(
+          title: 'Error',
+          message: 'Privacy Policy URL is not configured',
+        );
+        return;
+      }
+
+      final uri = Uri.parse(privacyUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        
+        // Track analytics
+        trackAnalyticsEvent('privacy_policy_opened', parameters: {
+          'source': 'login_screen',
+        });
+      } else {
+        AppSnackBar.error(
+          title: 'Error',
+          message: 'Could not open Privacy Policy URL',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error opening Privacy Policy: $e');
+      AppSnackBar.error(
+        title: 'Error',
+        message: 'Failed to open Privacy Policy',
+      );
+    }
   }
 
   Future<void> _safeHaptic(Future<void> Function() action) async {

@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../../data/modules/appointments_repository.dart';
+import '../../../../data/modules/chat_repository.dart';
 import '../../../../data/modules/content_repository.dart';
 import '../../../../data/modules/notification_repository.dart';
 import '../../../../data/service/storage_service.dart';
@@ -14,6 +15,7 @@ class HomeBinding extends Bindings {
         Get.find<AppointmentsRepository>(),
         Get.find<ContentRepository>(),
         Get.find<NotificationRepository>(),
+        Get.find<ChatRepository>(),
       ),
     );
   }

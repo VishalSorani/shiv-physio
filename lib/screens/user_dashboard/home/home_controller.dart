@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/base_class/base_controller.dart';
 import '../../../data/modules/appointments_repository.dart';
+import '../../../data/modules/chat_repository.dart';
 import '../../../data/modules/content_repository.dart';
 import '../../../data/modules/notification_repository.dart';
 import '../../../data/models/appointment.dart';
@@ -10,6 +11,7 @@ import '../../../data/models/content_item.dart';
 import '../../../data/service/storage_service.dart';
 import '../../doctor_dashboard/content/content_viewer_dialogs.dart' as viewer;
 import '../../user_dashboard/book_appointment/book_appointment_screen.dart';
+import '../../user_dashboard/chat/chat_conversation_screen.dart';
 import '../../user_dashboard/content/content_screen.dart';
 import '../../user_dashboard/notifications/notifications_screen.dart';
 import '../../user_dashboard/notifications/notifications_binding.dart';
@@ -27,12 +29,14 @@ class HomeController extends BaseController {
   final AppointmentsRepository _appointmentsRepository;
   final ContentRepository _contentRepository;
   final NotificationRepository _notificationRepository;
+  final ChatRepository _chatRepository;
 
   HomeController(
     this._storageService,
     this._appointmentsRepository,
     this._contentRepository,
     this._notificationRepository,
+    this._chatRepository,
   );
 
   // User info
@@ -163,8 +167,8 @@ class HomeController extends BaseController {
 
   Future<void> loadUnreadNotificationCount() async {
     try {
-      _unreadNotificationCount =
-          await _notificationRepository.getUnreadNotificationCount();
+      _unreadNotificationCount = await _notificationRepository
+          .getUnreadNotificationCount();
       update([notificationBadgeId]);
     } catch (e) {
       // Error handled by repository
@@ -262,16 +266,49 @@ class HomeController extends BaseController {
     // Navigate to appointments tab (Schedule tab)
     try {
       final dashboardController = Get.find<UserDashboardController>();
-      dashboardController.onBottomNavTap(UserDashboardController.appointmentsTabIndex);
+      dashboardController.onBottomNavTap(
+        UserDashboardController.appointmentsTabIndex,
+      );
     } catch (e) {
       // If UserDashboardController is not found, navigate using navigation service
       // This handles cases where we're not in the dashboard context
-      navigationService.navigateToRoute(UserDashboardScreen.userDashboardScreen);
+      navigationService.navigateToRoute(
+        UserDashboardScreen.userDashboardScreen,
+      );
     }
   }
 
-  void onChatTap() {
-    // TODO: Navigate to chat
+  Future<void> onChatTap() async {
+    await handleAsyncOperation(() async {
+      try {
+        // Get or create conversation with doctor
+        final conversation = await _chatRepository
+            .getOrCreateDoctorConversation();
+
+        // Get BaseConversationModel with rich user data
+        final baseConversation = await _chatRepository.getConversation(
+          conversation.id,
+        );
+
+        // Navigate to chat conversation screen
+        navigationService.navigateToRoute(
+          UserChatConversationScreen.chatConversationScreen,
+          arguments: {
+            'conversationId': conversation.id,
+            'conversation': baseConversation,
+          },
+        );
+
+        // Track analytics
+        trackAnalyticsEvent(
+          'chat_started_from_home',
+          parameters: {'conversation_id': conversation.id},
+        );
+      } catch (e) {
+        // Error is already logged in repository
+        rethrow;
+      }
+    });
   }
 
   void onSeeAllHighlightsTap() {

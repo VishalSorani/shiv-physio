@@ -21,6 +21,7 @@ class RemoteConfigService {
   static const String _latestVersionKey = 'latest_version';
   static const String _allowedCitiesKey = 'allowed_cities';
   static const String _privacyPolicyUrlKey = 'privacy_policy_url';
+  static const String _termsOfServiceUrlKey = 'terms_of_service_url';
 
   RemoteConfigService._();
 
@@ -57,6 +58,7 @@ class RemoteConfigService {
         _latestVersionKey: '1.0.0',
         _allowedCitiesKey: '["Rajkot"]', // Empty JSON array as default
         _privacyPolicyUrlKey: '',
+        _termsOfServiceUrlKey: '',
       });
 
       // Fetch and activate
@@ -153,6 +155,11 @@ class RemoteConfigService {
   /// Get privacy policy URL from Remote Config
   String getPrivacyPolicyUrl() {
     return _remoteConfig.getString(_privacyPolicyUrlKey);
+  }
+
+  /// Get terms of service URL from Remote Config
+  String getTermsOfServiceUrl() {
+    return _remoteConfig.getString(_termsOfServiceUrlKey);
   }
 
   /// Compare two version strings (e.g., "1.0.1" vs "1.0.2")
