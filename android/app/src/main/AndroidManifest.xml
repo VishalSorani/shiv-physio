@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for Android 13 (API 33) and later if app uses Advertising ID -->
+    <!-- OneSignal may use Advertising ID for analytics and attribution -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
+    
     <application
         android:label="Shiv Physiotherapy Clinic"
         android:name="${applicationName}"

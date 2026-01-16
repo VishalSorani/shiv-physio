@@ -254,8 +254,9 @@ class DoctorChatConversationScreen
   }
 
   String _formatTime(DateTime timestamp) {
-    final hour = timestamp.hour;
-    final minute = timestamp.minute.toString().padLeft(2, '0');
+    final localTimestamp = timestamp.toLocal();
+    final hour = localTimestamp.hour;
+    final minute = localTimestamp.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
     return '$displayHour:$minute $period';

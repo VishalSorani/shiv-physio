@@ -156,7 +156,8 @@ class DoctorChatListScreen extends BaseScreenView<DoctorChatListController> {
                       children: [
                         Expanded(
                           child: Text(
-                            lastMessage?.getMessagePreview() ?? 'No messages yet',
+                            lastMessage?.getMessagePreview() ??
+                                'No messages yet',
                             style: TextStyle(
                               fontSize: AppConstants.body2Size,
                               color: isDark
@@ -205,12 +206,13 @@ class DoctorChatListScreen extends BaseScreenView<DoctorChatListController> {
 
   String _formatTime(DateTime timestamp) {
     final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final localTimestamp = timestamp.toLocal();
+    final difference = now.difference(localTimestamp);
 
     if (difference.inDays == 0) {
       // Today - show time
-      final hour = timestamp.hour;
-      final minute = timestamp.minute.toString().padLeft(2, '0');
+      final hour = localTimestamp.hour;
+      final minute = localTimestamp.minute.toString().padLeft(2, '0');
       final period = hour >= 12 ? 'PM' : 'AM';
       final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
       return '$displayHour:$minute $period';
@@ -219,10 +221,10 @@ class DoctorChatListScreen extends BaseScreenView<DoctorChatListController> {
     } else if (difference.inDays < 7) {
       // This week - show day name
       final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      return days[timestamp.weekday - 1];
+      return days[localTimestamp.weekday - 1];
     } else {
       // Older - show date
-      return '${timestamp.day}/${timestamp.month}';
+      return '${localTimestamp.day}/${localTimestamp.month}';
     }
   }
 

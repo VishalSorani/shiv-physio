@@ -536,7 +536,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
     bool isDark,
     Color surfaceColor,
   ) {
-    final date = appointment.startAt;
+    final date = appointment.startAt.toLocal();
     final hour = date.hour;
     final minute = date.minute;
     final period = hour >= 12 ? 'PM' : 'AM';
@@ -728,7 +728,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
     bool isCompleted,
     bool isCancelled,
   ) {
-    final date = appointment.startAt;
+    final date = appointment.startAt.toLocal();
     final months = [
       'Jan',
       'Feb',
@@ -1497,8 +1497,9 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
   }
 
   String _formatDate(DateTime date) {
+    final localDate = date.toLocal();
     final now = DateTime.now();
-    final difference = now.difference(date).inDays;
+    final difference = now.difference(localDate).inDays;
 
     if (difference == 0) {
       return 'Today';
@@ -1524,7 +1525,7 @@ class PatientDetailScreen extends BaseScreenView<PatientDetailController> {
         'Nov',
         'Dec',
       ];
-      return '${months[date.month - 1]} ${date.day}, ${date.year}';
+      return '${months[localDate.month - 1]} ${localDate.day}, ${localDate.year}';
     }
   }
 

@@ -63,6 +63,7 @@ class PatientManagementController extends BaseController {
         }
       }
     }, showLoadingIndicator: false);
+    update([listId, paginationId]);
   }
 
   /// Refresh patients (for pull-to-refresh)

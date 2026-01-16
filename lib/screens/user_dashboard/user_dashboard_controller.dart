@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../../data/base_class/base_controller.dart';
 import '../../data/service/location_service.dart';
 import '../../data/service/remote_config_service.dart';
 import '../../widgets/app_bottom_nav_bar.dart';
 import '../../widgets/service_unavailable_dialog.dart';
-import 'chat/chat_list_controller.dart';
 
 class UserDashboardController extends BaseController {
   static const String contentId = 'user_dashboard_content';
@@ -128,33 +126,11 @@ class UserDashboardController extends BaseController {
   void onBottomNavTap(int index) {
     if (_currentTabIndex == index) return;
 
-    // If user taps Messages tab, initialize doctor conversation and navigate
-    if (index == galleryTabIndex) {
-      _initializeDoctorConversation();
-      return;
-    }
-
-    // Allow all other tabs
+    // Just switch tabs. Do NOT auto-navigate to chat conversation.
+    // Chat conversation should open only on explicit user action
+    // (e.g., tapping a conversation in the list, or tapping "Chat" button).
     _currentTabIndex = index;
     update([bottomNavId, contentId]);
-  }
-
-  /// Initialize conversation with doctor when user taps Messages tab
-  Future<void> _initializeDoctorConversation() async {
-    try {
-      // Update tab index first to show Messages tab as selected
-      _currentTabIndex = galleryTabIndex;
-      update([bottomNavId, contentId]);
-      
-      // Get the chat list controller and initialize doctor conversation
-      final chatListController = Get.find<UserChatListController>();
-      await chatListController.initializeDoctorConversation();
-    } catch (e) {
-      debugPrint('Error initializing doctor conversation: $e');
-      // If controller not found, just switch to the tab
-      _currentTabIndex = galleryTabIndex;
-      update([bottomNavId, contentId]);
-    }
   }
 
   @override

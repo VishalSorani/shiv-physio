@@ -38,7 +38,7 @@ class NotificationRepository extends BaseRepository {
   // Current implementation uses OneSignal REST API directly from the app.
   // This is functional but less secure than using a backend service.
   static const String _onesignalRestApiKey =
-      'os_v2_app_knf7ulz2vvavrdapf7pmqt7k4m6qxduhtekeldfczi4zhtm4tqi3rdrsuj5xpo7brndszrkq4tu4mh5nihf3dcao2cpx3zia3sfzsxq';
+      'os_v2_app_knf7ulz2vvavrdapf7pmqt7k4o2j36mesvqels4vd5f52tvdsd6ujqb6hiil2445nuzm4hni56efakd7ifqcdkhrlxjhqhxd3gzi7ky';
 
   final StorageService _storageService;
 
@@ -124,7 +124,7 @@ class NotificationRepository extends BaseRepository {
 
       if (response.statusCode == 200) {
         logI('Notification sent successfully to user: $onesignalId');
-        
+
         // Save notification to database
         await saveNotificationToDatabase(
           userId: userId,
@@ -135,7 +135,7 @@ class NotificationRepository extends BaseRepository {
           data: data,
           onesignalId: onesignalId,
         );
-        
+
         return true;
       } else {
         logW('Failed to send notification. Status: ${response.statusCode}');
@@ -372,7 +372,9 @@ class NotificationRepository extends BaseRepository {
       }
 
       if (targetOneSignalId != null) {
-        final targetUserId = isDoctor ? appointment.patientId : appointment.doctorId;
+        final targetUserId = isDoctor
+            ? appointment.patientId
+            : appointment.doctorId;
         await sendNotificationToUser(
           onesignalId: targetOneSignalId,
           userId: targetUserId,

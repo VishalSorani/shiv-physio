@@ -1948,8 +1948,8 @@ class DoctorProfileScreen extends BaseScreenView<DoctorProfileController> {
     if (timeOffIndex != null) {
       final existingTimeOff = controller.getTimeOff(timeOffIndex);
       if (existingTimeOff != null) {
-        startDate = existingTimeOff.startAt;
-        endDate = existingTimeOff.endAt;
+        startDate = existingTimeOff.startAt.toLocal();
+        endDate = existingTimeOff.endAt.toLocal();
         reason = existingTimeOff.reason;
       }
     }

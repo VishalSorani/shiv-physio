@@ -19,7 +19,7 @@ abstract class BaseRepository {
 
   /// Log an error message (always shown)
   void logE(String message, {dynamic error, StackTrace? stackTrace}) {
-    _logger.e('${runtimeType.toString()}: $message', error, stackTrace);
+      _logger.e('${runtimeType.toString()}: $message', error, stackTrace);
     // Also record to Crashlytics if Firebase is initialized
     if (FirebaseAppService.isInitialized && error != null) {
       unawaited(

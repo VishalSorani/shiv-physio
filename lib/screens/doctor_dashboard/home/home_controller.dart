@@ -57,7 +57,8 @@ class DoctorHomeController extends BaseController {
         'id': request.appointment.id,
         'appointment': request.appointment,
         'patientName': request.patient.fullName ?? 'Unknown Patient',
-        'treatmentType': request.appointment.patientNote ?? 'General Consultation',
+        'treatmentType':
+            request.appointment.patientNote ?? 'General Consultation',
         'dateTime': _formatAppointmentDateTime(request.appointment.startAt),
         'avatarUrl': request.patient.avatarUrl,
         'isNew': request.isNew,
@@ -84,10 +85,12 @@ class DoctorHomeController extends BaseController {
         'time': _formatTime(appointmentTime),
         'patientInitials': _getInitials(request.patient.fullName ?? ''),
         'patientName': request.patient.fullName ?? 'Unknown Patient',
-        'treatmentType': request.appointment.patientNote ?? 'General Consultation',
+        'treatmentType':
+            request.appointment.patientNote ?? 'General Consultation',
         'isActive': isActive,
         'isBreak': false,
-        'isOnline': false, // Can be determined from appointment type if available
+        'isOnline':
+            false, // Can be determined from appointment type if available
       });
     }
 
@@ -178,21 +181,23 @@ class DoctorHomeController extends BaseController {
   bool get hasPendingRequests => _pendingRequests.isNotEmpty;
   bool get hasTodaysSchedule => _todaysSchedule.isNotEmpty;
   bool get hasAnalytics => _analytics.isNotEmpty;
-  bool get hasData => !_isLoading; // Used to determine if we should show loading screen
+  bool get hasData =>
+      !_isLoading; // Used to determine if we should show loading screen
 
   String _formatAppointmentDateTime(DateTime dateTime) {
+    final localDateTime = dateTime.toLocal();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final appointmentDate = DateTime(
-      dateTime.year,
-      dateTime.month,
-      dateTime.day,
+      localDateTime.year,
+      localDateTime.month,
+      localDateTime.day,
     );
 
     if (appointmentDate == today) {
-      return 'Today, ${_formatTime(dateTime)}';
+      return 'Today, ${_formatTime(localDateTime)}';
     } else if (appointmentDate == today.add(const Duration(days: 1))) {
-      return 'Tomorrow, ${_formatTime(dateTime)}';
+      return 'Tomorrow, ${_formatTime(localDateTime)}';
     } else {
       final months = [
         'Jan',
@@ -208,13 +213,14 @@ class DoctorHomeController extends BaseController {
         'Nov',
         'Dec',
       ];
-      return '${months[dateTime.month - 1]} ${dateTime.day}, ${_formatTime(dateTime)}';
+      return '${months[localDateTime.month - 1]} ${localDateTime.day}, ${_formatTime(localDateTime)}';
     }
   }
 
   String _formatTime(DateTime dateTime) {
-    final hour = dateTime.hour;
-    final minute = dateTime.minute;
+    final localDateTime = dateTime.toLocal();
+    final hour = localDateTime.hour;
+    final minute = localDateTime.minute;
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
     final displayMinute = minute.toString().padLeft(2, '0');
@@ -236,7 +242,6 @@ class DoctorHomeController extends BaseController {
     }
     return number.toString();
   }
-
 
   Future<void> loadHomeData({bool showLoading = true}) async {
     await handleAsyncOperation(() async {
@@ -290,7 +295,9 @@ class DoctorHomeController extends BaseController {
     // Navigate to appointments tab in doctor dashboard
     try {
       final dashboardController = Get.find<DoctorDashboardController>();
-      dashboardController.onBottomNavTap(DoctorDashboardController.appointmentsTabIndex);
+      dashboardController.onBottomNavTap(
+        DoctorDashboardController.appointmentsTabIndex,
+      );
     } catch (e) {
       // If DoctorDashboardController is not found, navigate using navigation service
       // This handles cases where we're not in the dashboard context
@@ -302,7 +309,7 @@ class DoctorHomeController extends BaseController {
     final appointmentId = request['id'] as String;
     _isApproving = true;
     update([pendingRequestsId]);
-    
+
     try {
       await handleAsyncOperation(() async {
         await _homeRepository.approveAppointment(appointmentId);
@@ -347,7 +354,7 @@ class DoctorHomeController extends BaseController {
     final appointmentId = request['id'] as String;
     _isDeclining = true;
     update([pendingRequestsId]);
-    
+
     try {
       await handleAsyncOperation(() async {
         await _homeRepository.declineAppointment(
@@ -358,10 +365,7 @@ class DoctorHomeController extends BaseController {
         await loadHomeData();
         _showDeclineDialog = false;
         _declineReason = '';
-        AppSnackBar.success(
-          title: 'Success',
-          message: 'Appointment declined',
-        );
+        AppSnackBar.success(title: 'Success', message: 'Appointment declined');
       });
     } finally {
       _isDeclining = false;
